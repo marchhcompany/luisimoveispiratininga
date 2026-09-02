@@ -1,1 +1,568 @@
-# luisimoveispiratininga
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapeamento Territorial | Setor Praia de Piratininga</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #040915;
+      color: #e2e8f0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .gradient-line {
+      height: 1.5px;
+      background: linear-gradient(90deg, rgba(239, 68, 68, 0.7) 0%, rgba(244, 63, 94, 0.4) 30%, rgba(20, 184, 166, 0) 100%);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-sky-500 selection:text-white">
+
+  <!-- CABEÇALHO -->
+  <header class="w-full bg-[#040915] border-b border-[#0e1d37]">
+    <div class="max-w-[1400px] mx-auto px-6 py-5 flex flex-col md:flex-row md:items-center justify-between gap-5">
+      <div class="flex items-center gap-4">
+        <div class="w-13 h-13 min-w-[52px] min-h-[52px] rounded-full bg-white flex flex-col items-center justify-center p-1 border-2 border-red-500 shadow-md">
+          <span class="text-red-600 font-extrabold text-[12px] leading-none uppercase tracking-tighter">LUIS</span>
+          <span class="text-[#081427] font-extrabold text-[8px] leading-tight uppercase tracking-wider">IMÓVEIS</span>
+        </div>
+
+        <div>
+          <div class="text-[11px] font-bold tracking-widest text-[#0094ff] uppercase">
+            LUIS IMÓVEIS — NITERÓI/RJ
+          </div>
+          <h1 class="text-2xl md:text-[28px] font-extrabold text-white tracking-tight flex flex-wrap items-center gap-2 mt-0.5">
+            <span>Mapeamento Territorial</span>
+            <span class="text-red-500 font-normal">|</span>
+            <span>Setor Praia de Piratininga</span>
+          </h1>
+          <p class="text-xs text-slate-400 mt-1 font-normal">
+            Controle de rondas por quadra — imóveis mapeados e captação ativa em campo
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 self-start md:self-center">
+        <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-[#09152b] hover:bg-[#0f2244] border border-[#172e54] text-slate-200 text-sm font-semibold flex items-center gap-2 transition duration-150 shadow-sm">
+          <i data-lucide="printer" class="w-4 h-4 text-slate-300"></i>
+          Exportar PDF
+        </button>
+        <a href="https://share.google/sYSDxmyIQBpDsvbMp~" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-xl bg-[#0094ff] hover:bg-[#0080dd] text-white text-sm font-semibold flex items-center gap-2 transition duration-150 shadow-lg shadow-sky-500/10">
+          <i data-lucide="plus" class="w-4 h-4 stroke-[3]"></i>
+          Nova Captação
+        </a>
+      </div>
+    </div>
+    <div class="gradient-line w-full"></div>
+  </header>
+
+  <!-- DASHBOARD PRINCIPAL -->
+  <main class="max-w-[1400px] mx-auto px-6 py-6 w-full space-y-6 flex-1">
+
+    <!-- METRICAS DO TOPO -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div class="bg-[#081427] border border-[#122543] rounded-2xl p-6 relative flex flex-col justify-between">
+        <div class="flex items-start justify-between">
+          <span class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Quadras Concluídas</span>
+          <div class="w-8 h-8 rounded-full border border-emerald-500/30 bg-[#06302b] text-emerald-400 flex items-center justify-center">
+            <i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>
+          </div>
+        </div>
+        <div class="mt-4">
+          <div id="stat-concluidas" class="text-4xl font-extrabold text-[#0094ff] tracking-tight">2 de 8</div>
+          <div class="text-xs text-slate-400 mt-1">Status “Captação Realizada”</div>
+        </div>
+      </div>
+
+      <div class="bg-[#081427] border border-[#122543] rounded-2xl p-6 relative flex flex-col justify-between">
+        <div class="flex items-start justify-between">
+          <span class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Imóveis Mapeados</span>
+          <div class="w-8 h-8 rounded-full border border-rose-500/20 bg-[#2a131a] text-rose-400 flex items-center justify-center">
+            <i data-lucide="home" class="w-4 h-4"></i>
+          </div>
+        </div>
+        <div class="mt-4">
+          <div id="stat-imoveis" class="text-4xl font-extrabold text-[#0094ff] tracking-tight">0</div>
+          <div class="text-xs text-slate-400 mt-1">Total mapeado nas quadras</div>
+        </div>
+      </div>
+
+      <div class="bg-[#081427] border border-[#122543] rounded-2xl p-6 relative flex flex-col justify-between">
+        <div class="flex items-start justify-between">
+          <span class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Contatos Realizados</span>
+          <div class="w-8 h-8 rounded-full border border-sky-500/20 bg-[#09223f] text-sky-400 flex items-center justify-center">
+            <i data-lucide="handshake" class="w-4 h-4"></i>
+          </div>
+        </div>
+        <div class="mt-4">
+          <div id="stat-contatos" class="text-4xl font-extrabold text-[#0094ff] tracking-tight">0</div>
+          <div class="text-xs text-slate-400 mt-1">Proprietários e portarias</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETOR MONITORADO -->
+    <section class="bg-[#081427] border border-[#122543] rounded-2xl px-5 py-3.5 flex items-center gap-3.5">
+      <div class="w-8 h-8 rounded-full bg-[#0c1f3c] border border-[#152e54] text-[#0094ff] flex items-center justify-center shrink-0">
+        <i data-lucide="map-pin" class="w-4 h-4"></i>
+      </div>
+      <div>
+        <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Setor Monitorado</div>
+        <div class="text-[13px] font-semibold text-slate-100 mt-0.5">Praia de Piratininga — 3,2 km de orla · 8 quadras operacionais</div>
+      </div>
+    </section>
+
+    <!-- GRID DAS 8 QUADRAS -->
+    <section id="grid-quadras" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></section>
+
+  </main>
+
+  <!-- RODAPÉ -->
+  <footer class="border-t border-[#0e1d37] bg-[#040915] py-7 px-6 text-center text-xs space-y-2 text-slate-400">
+    <div class="font-medium">
+      <span class="text-[#0094ff] font-semibold">Luis Imóveis Niterói</span> <span class="text-slate-600">|</span> Ferramenta Operacional de Captação Territorial
+    </div>
+    <div class="text-slate-400 font-normal">
+      CRECI: 7888 <span class="text-red-500 font-bold mx-1.5">•</span> 
+      Tradição na Região Oceânica <span class="text-red-500 font-bold mx-1.5">•</span> 
+      <a href="https://www.luisimoveis.com.br" target="_blank" class="text-[#0094ff] hover:underline">Portal de Comercialização</a> <span class="text-red-500 font-bold mx-1.5">•</span> 
+      <a href="https://www.instagram.com/luis_imoveis" target="_blank" rel="noopener noreferrer" class="text-[#0094ff] hover:underline">@luis_imoveis</a>
+    </div>
+  </footer>
+
+  <!-- MODAL DE GALERIA COM ADIÇÃO E EDIÇÃO DE CASAS -->
+  <div id="modal-galeria" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#081427] border border-[#1b355e] w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+      
+      <!-- Topo Modal -->
+      <div class="p-5 border-b border-[#122543] flex items-center justify-between">
+        <div>
+          <span id="modal-g-tag" class="text-xs font-bold text-[#0094ff] uppercase tracking-wider">QUADRA 01</span>
+          <h2 id="modal-g-nome" class="text-lg font-bold text-white leading-tight">Nome da Quadra</h2>
+        </div>
+        <button onclick="fecharGaleria()" class="text-slate-400 hover:text-white p-2">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <!-- Conteúdo do Modal -->
+      <div class="p-6 overflow-y-auto space-y-6 flex-1" id="galeria-scroll-area">
+        
+        <!-- Formulário de Cadastro / Edição -->
+        <div id="box-formulario" class="bg-[#050f1f] border border-[#14294b] rounded-xl p-4 transition-all duration-300">
+          <div class="flex items-center justify-between mb-3">
+            <h3 id="form-titulo" class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="camera" class="w-4 h-4 text-[#0094ff]"></i>
+              Registrar Nova Casa / Terreno nesta Quadra
+            </h3>
+            <span id="badge-modo-edicao" class="hidden text-[10px] uppercase font-extrabold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/40">
+              Modo Edição
+            </span>
+          </div>
+
+          <form onsubmit="salvarCasa(event)" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">Foto da Casa (Celular ou Computador)</label>
+              <input type="file" id="cad-foto-arquivo" accept="image/*" class="w-full text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#0094ff] file:text-white hover:file:bg-[#007fd6] cursor-pointer">
+              <span id="aviso-foto-manter" class="text-[10px] text-slate-400 hidden mt-1 block">Foto atual mantida (selecione um arquivo apenas se quiser substituir).</span>
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">Ou Link Direto da Imagem (Opcional)</label>
+              <input type="url" id="cad-foto-url" placeholder="https://..." class="w-full px-3 py-1.5 bg-[#081427] border border-[#1b355e] rounded-lg text-xs text-white focus:outline-none focus:border-[#0094ff]">
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">Endereço / Referência da Casa *</label>
+              <input type="text" id="cad-endereco" required placeholder="Ex: Av. Almirante Tamandaré, nº 140" class="w-full px-3 py-1.5 bg-[#081427] border border-[#1b355e] rounded-lg text-xs text-white focus:outline-none focus:border-[#0094ff]">
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">Situação / Tipo de Placa *</label>
+              <select id="cad-situacao" class="w-full px-3 py-1.5 bg-[#081427] border border-[#1b355e] rounded-lg text-xs text-white focus:outline-none focus:border-[#0094ff]">
+                <option value="Particular">🟢 Placa Particular (Direto com Dono)</option>
+                <option value="Terreno">🟡 Terreno / Lote Vazio</option>
+                <option value="Concorrente">🔵 Placa Concorrente</option>
+                <option value="Fechada">⚪ Sem Placa / Casa Fechada</option>
+              </select>
+            </div>
+            <div class="md:col-span-2">
+              <label class="text-[11px] text-slate-400 block mb-1">Telefone da Placa / Anotações do Contato</label>
+              <input type="text" id="cad-telefone" placeholder="Ex: (21) 99888-7777 - Sr. Carlos (proprietário quer 1.8M)" class="w-full px-3 py-1.5 bg-[#081427] border border-[#1b355e] rounded-lg text-xs text-white focus:outline-none focus:border-[#0094ff]">
+            </div>
+            <div class="md:col-span-2 flex items-center justify-end gap-2 pt-2">
+              <button type="button" id="btn-cancelar-edicao" onclick="cancelarEdicao()" class="hidden px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition">
+                Cancelar Edição
+              </button>
+              <button type="submit" id="btn-submit-casa" class="px-5 py-2 bg-[#0094ff] hover:bg-[#0080dd] text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> <span id="btn-submit-texto">Salvar Imóvel na Quadra</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Grade de Fotos/Casas Cadastradas -->
+        <div>
+          <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+            <span>Imóveis Catalogados nesta Quadra</span>
+            <span id="badge-total-casas" class="text-[11px] bg-[#0094ff]/20 text-[#0094ff] px-2 py-0.5 rounded-full font-bold">0</span>
+          </h3>
+          <div id="galeria-lista" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const quadrasPadrao = [
+      { id: 1, tag: "QUADRA 01", nome: "Entrada / Ponto Acúrcio Tôrres (Quiosques 1 a 4)", status: "Captação Realizada", imoveis: 0, contatos: 0, casas: [] },
+      { id: 2, tag: "QUADRA 02", nome: "Orla — Entre R. 113 e R. 116", status: "Captação Realizada", imoveis: 0, contatos: 0, casas: [] },
+      { id: 3, tag: "QUADRA 03", nome: "Orla — Miolo Nobre (Entre R. 116 e R. 120)", status: "Pendente", imoveis: 0, contatos: 0, casas: [] },
+      { id: 4, tag: "QUADRA 04", nome: "Orla — Trecho Final (Entre R. 120 e R. 125)", status: "Pendente", imoveis: 0, contatos: 0, casas: [] },
+      { id: 5, tag: "QUADRA 05", nome: "Prainha & Encosta do Tibau", status: "Pendente", imoveis: 0, contatos: 0, casas: [] },
+      { id: 6, tag: "QUADRA 06", nome: "2ª Quadra — Av. Cons. Paulo de Melo Kalle (Início)", status: "Pendente", imoveis: 0, contatos: 0, casas: [] },
+      { id: 7, tag: "QUADRA 07", nome: "2ª Quadra — Av. Cons. Paulo de Melo Kalle (Final)", status: "Pendente", imoveis: 0, contatos: 0, casas: [] },
+      { id: 8, tag: "QUADRA 08", nome: "Eixo das Transversais (R. 115 a R. 118)", status: "Pendente", imoveis: 0, contatos: 0, casas: [] }
+    ];
+
+    let quadras = JSON.parse(localStorage.getItem('luis_territorial_quadras_v3')) || quadrasPadrao;
+    let quadraAbertaId = null;
+    let indexCasaEditando = null; // Guarda o índice da casa sendo editada
+
+    function salvar() {
+      quadras.forEach(q => {
+        if (q.casas && q.casas.length > 0) {
+          q.imoveis = q.casas.length;
+          q.contatos = q.casas.filter(c => c.telefone && c.telefone.trim() !== '').length;
+        }
+      });
+
+      try {
+        localStorage.setItem('luis_territorial_quadras_v3', JSON.stringify(quadras));
+      } catch (e) {
+        alert("Aviso: Limite de armazenamento local atingido. Tente usar imagens menores ou links.");
+      }
+      renderizar();
+      atualizarTotais();
+    }
+
+    function toggleStatus(id) {
+      const q = quadras.find(item => item.id === id);
+      if (q) {
+        q.status = q.status === "Captação Realizada" ? "Pendente" : "Captação Realizada";
+        salvar();
+      }
+    }
+
+    function alterarContadorImoveis(id, delta) {
+      const q = quadras.find(item => item.id === id);
+      if (q) {
+        q.imoveis = Math.max(0, (q.imoveis || 0) + delta);
+        salvar();
+      }
+    }
+
+    function atualizarTotais() {
+      const concluidas = quadras.filter(q => q.status === "Captação Realizada").length;
+      const totalImoveis = quadras.reduce((acc, q) => acc + (q.imoveis || 0), 0);
+      const totalContatos = quadras.reduce((acc, q) => acc + (q.contatos || 0), 0);
+
+      document.getElementById('stat-concluidas').innerText = `${concluidas} de ${quadras.length}`;
+      document.getElementById('stat-imoveis').innerText = totalImoveis;
+      document.getElementById('stat-contatos').innerText = totalContatos;
+    }
+
+    function renderizar() {
+      const grid = document.getElementById('grid-quadras');
+      grid.innerHTML = '';
+
+      quadras.forEach(q => {
+        const isConcluida = q.status === "Captação Realizada";
+        const badgeClasses = isConcluida 
+          ? "bg-[#042c26] text-[#10b981] border border-[#064e43]" 
+          : "bg-[#0b172d] text-[#8e9eb5] border border-[#162a4d]";
+
+        const qtdCasas = q.casas ? q.casas.length : 0;
+
+        const card = document.createElement('div');
+        card.className = "bg-[#081427] border border-[#122543] rounded-2xl p-5 flex flex-col justify-between hover:border-[#1c3966] transition duration-200";
+
+        card.innerHTML = `
+          <div>
+            <span class="text-[11px] font-bold tracking-wider text-[#0094ff] uppercase block">${q.tag}</span>
+            <h3 class="text-[15px] font-bold text-white mt-1 leading-snug min-h-[42px]">${q.nome}</h3>
+            
+            <div class="mt-2.5 mb-4">
+              <button onclick="toggleStatus(${q.id})" class="text-[11px] font-semibold px-3 py-1 rounded-full cursor-pointer transition ${badgeClasses}">
+                ${q.status}
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-2.5">
+            <button onclick="abrirGaleria(${q.id})" class="w-full py-2.5 bg-[#0094ff]/15 hover:bg-[#0094ff]/25 border border-[#0094ff]/40 text-[#0094ff] hover:text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition">
+              <i data-lucide="images" class="w-4 h-4"></i>
+              Ver Fotos & Casas Mapeadas (${qtdCasas})
+            </button>
+
+            <div class="bg-[#050f1f] border border-[#11233f] rounded-xl px-4 py-2 flex items-center justify-between">
+              <span class="text-xs text-slate-300 font-medium">Imóveis Mapeados</span>
+              <div class="flex items-center gap-2">
+                <button onclick="alterarContadorImoveis(${q.id}, -1)" class="w-6 h-6 rounded-md border border-[#1a3258] text-slate-400 hover:text-white flex items-center justify-center hover:bg-[#11223e] transition">
+                  <i data-lucide="minus" class="w-3.5 h-3.5"></i>
+                </button>
+                <span class="text-sm font-bold text-white w-5 text-center">${q.imoveis || 0}</span>
+                <button onclick="alterarContadorImoveis(${q.id}, 1)" class="w-6 h-6 rounded-md border border-[#1a3258] text-slate-400 hover:text-white flex items-center justify-center hover:bg-[#11223e] transition">
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-[#050f1f] border border-[#11233f] rounded-xl px-4 py-2.5 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-300 font-medium">Contatos Feitos</span>
+                <span class="text-sm font-bold text-white ml-2">${q.contatos || 0}</span>
+              </div>
+              <button onclick="abrirGaleria(${q.id})" class="text-xs font-semibold text-[#0094ff] hover:text-sky-300 flex items-center gap-1.5 transition">
+                <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                Ver / Adicionar
+              </button>
+            </div>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+
+      lucide.createIcons();
+    }
+
+    function abrirGaleria(id) {
+      quadraAbertaId = id;
+      cancelarEdicao(); // Limpa qualquer edição anterior
+      const q = quadras.find(item => item.id === id);
+      if (!q) return;
+
+      document.getElementById('modal-g-tag').innerText = q.tag;
+      document.getElementById('modal-g-nome').innerText = q.nome;
+
+      renderizarListaGaleria(q);
+      document.getElementById('modal-galeria').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function fecharGaleria() {
+      document.getElementById('modal-galeria').classList.add('hidden');
+      quadraAbertaId = null;
+      cancelarEdicao();
+    }
+
+    function renderizarListaGaleria(q) {
+      const container = document.getElementById('galeria-lista');
+      container.innerHTML = '';
+      const total = q.casas ? q.casas.length : 0;
+      document.getElementById('badge-total-casas').innerText = total;
+
+      if (!q.casas || q.casas.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-8 text-center text-slate-500 text-xs italic">
+            Nenhuma foto de casa cadastrada nesta quadra ainda. Use o formulário acima para registrar!
+          </div>
+        `;
+        return;
+      }
+
+      q.casas.forEach((casa, index) => {
+        let badgeColor = "bg-slate-800 text-slate-300 border-slate-700";
+        if (casa.situacao === 'Particular') badgeColor = "bg-emerald-950/80 text-emerald-300 border-emerald-800";
+        if (casa.situacao === 'Terreno') badgeColor = "bg-amber-950/80 text-amber-300 border-amber-800";
+        if (casa.situacao === 'Concorrente') badgeColor = "bg-blue-950/80 text-sky-300 border-blue-800";
+
+        const cardImg = casa.foto || 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=500&auto=format&fit=crop&q=60';
+
+        const card = `
+          <div class="bg-[#050f1f] border border-[#14294b] rounded-xl overflow-hidden flex flex-col justify-between hover:border-[#1d3d70] transition">
+            <div class="relative h-44 bg-black">
+              <img src="${cardImg}" alt="Foto da Casa" class="w-full h-full object-cover">
+              <span class="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeColor}">
+                ${casa.situacao}
+              </span>
+              
+              <!-- AÇÕES: EDITAR E EXCLUIR -->
+              <div class="absolute top-2 right-2 flex items-center gap-1.5">
+                <button onclick="editarCasa(${index})" title="Editar informações deste imóvel" class="p-1.5 rounded-md bg-black/70 hover:bg-[#0094ff] text-white transition">
+                  <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                </button>
+                <button onclick="excluirCasa(${index})" title="Excluir" class="p-1.5 rounded-md bg-black/70 hover:bg-rose-600 text-rose-300 hover:text-white transition">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+              <div>
+                <p class="font-bold text-white text-xs leading-snug">${casa.endereco}</p>
+                <p class="text-[11px] text-slate-300 mt-1.5 flex items-start gap-1.5 leading-relaxed">
+                  <i data-lucide="phone" class="w-3 h-3 text-[#0094ff] shrink-0 mt-0.5"></i> 
+                  <span>${casa.telefone || 'Sem contato anotado'}</span>
+                </p>
+              </div>
+
+              <div class="pt-2 border-t border-[#122543] flex items-center gap-2">
+                <button onclick="editarCasa(${index})" class="flex-1 py-1.5 bg-[#0b1b36] hover:bg-[#112a54] text-sky-400 text-[11px] font-semibold rounded-lg flex items-center justify-center gap-1 transition">
+                  <i data-lucide="edit-2" class="w-3 h-3"></i> Editar
+                </button>
+                ${casa.telefone && casa.telefone.replace(/\D/g, '').length >= 8 ? `
+                  <a href="https://wa.me/55${casa.telefone.replace(/\D/g, '')}" target="_blank" class="py-1.5 px-3 bg-[#00a884] hover:bg-[#008f6f] text-white text-[11px] font-bold rounded-lg flex items-center justify-center gap-1 transition">
+                    <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> WhatsApp
+                  </a>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', card);
+      });
+
+      lucide.createIcons();
+    }
+
+    // DISPARAR MODO DE EDIÇÃO
+    function editarCasa(index) {
+      const q = quadras.find(item => item.id === quadraAbertaId);
+      if (!q || !q.casas[index]) return;
+
+      const casa = q.casas[index];
+      indexCasaEditando = index;
+
+      // Preenche os campos do formulário
+      document.getElementById('cad-endereco').value = casa.endereco || '';
+      document.getElementById('cad-situacao').value = casa.situacao || 'Particular';
+      document.getElementById('cad-telefone').value = casa.telefone || '';
+      document.getElementById('cad-foto-url').value = casa.foto && casa.foto.startsWith('http') ? casa.foto : '';
+      document.getElementById('cad-foto-arquivo').value = '';
+
+      // Atualiza interface do formulário
+      document.getElementById('form-titulo').innerHTML = `<i data-lucide="edit-3" class="w-4 h-4 text-amber-400"></i> Editando Imóvel: ${casa.endereco}`;
+      document.getElementById('badge-modo-edicao').classList.remove('hidden');
+      document.getElementById('aviso-foto-manter').classList.remove('hidden');
+      document.getElementById('btn-submit-texto').innerText = "Salvar Alterações";
+      document.getElementById('btn-cancelar-edicao').classList.remove('hidden');
+      
+      const box = document.getElementById('box-formulario');
+      box.classList.add('border-amber-500/50', 'bg-[#0a182e]');
+      box.classList.remove('border-[#14294b]', 'bg-[#050f1f]');
+
+      // Rola suavemente até o formulário
+      document.getElementById('galeria-scroll-area').scrollTo({ top: 0, behavior: 'smooth' });
+      lucide.createIcons();
+    }
+
+    function cancelarEdicao() {
+      indexCasaEditando = null;
+      document.getElementById('cad-endereco').value = '';
+      document.getElementById('cad-situacao').value = 'Particular';
+      document.getElementById('cad-telefone').value = '';
+      document.getElementById('cad-foto-url').value = '';
+      document.getElementById('cad-foto-arquivo').value = '';
+
+      document.getElementById('form-titulo').innerHTML = `<i data-lucide="camera" class="w-4 h-4 text-[#0094ff]"></i> Registrar Nova Casa / Terreno nesta Quadra`;
+      document.getElementById('badge-modo-edicao').classList.add('hidden');
+      document.getElementById('aviso-foto-manter').classList.add('hidden');
+      document.getElementById('btn-submit-texto').innerText = "Salvar Imóvel na Quadra";
+      document.getElementById('btn-cancelar-edicao').classList.add('hidden');
+
+      const box = document.getElementById('box-formulario');
+      box.classList.remove('border-amber-500/50', 'bg-[#0a182e]');
+      box.classList.add('border-[#14294b]', 'bg-[#050f1f]');
+      lucide.createIcons();
+    }
+
+    // SALVAR CASA (CRIAÇÃO OU ATUALIZAÇÃO)
+    function salvarCasa(e) {
+      e.preventDefault();
+      const q = quadras.find(item => item.id === quadraAbertaId);
+      if (!q) return;
+
+      const arquivoInput = document.getElementById('cad-foto-arquivo');
+      const urlInput = document.getElementById('cad-foto-url').value.trim();
+      const endereco = document.getElementById('cad-endereco').value.trim();
+      const situacao = document.getElementById('cad-situacao').value;
+      const telefone = document.getElementById('cad-telefone').value.trim();
+
+      function concluirGravacao(fotoFinal) {
+        if (indexCasaEditando !== null) {
+          // ATUALIZAR CASA EXISTENTE
+          q.casas[indexCasaEditando].endereco = endereco;
+          q.casas[indexCasaEditando].situacao = situacao;
+          q.casas[indexCasaEditando].telefone = telefone;
+          if (fotoFinal) {
+            q.casas[indexCasaEditando].foto = fotoFinal;
+          }
+        } else {
+          // INSERIR NOVA CASA
+          if (!q.casas) q.casas = [];
+          q.casas.push({
+            foto: fotoFinal || 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=500&auto=format&fit=crop&q=60',
+            endereco,
+            situacao,
+            telefone
+          });
+        }
+
+        cancelarEdicao();
+        salvar();
+        renderizarListaGaleria(q);
+      }
+
+      // Tratamento da Imagem
+      if (arquivoInput.files && arquivoInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          concluirGravacao(evt.target.result);
+        };
+        reader.readAsDataURL(arquivoInput.files[0]);
+      } else if (urlInput) {
+        concluirGravacao(urlInput);
+      } else {
+        // Se estiver editando e não colocou foto nova, mantém a foto antiga
+        const fotoExistente = (indexCasaEditando !== null && q.casas[indexCasaEditando]) ? q.casas[indexCasaEditando].foto : null;
+        concluirGravacao(fotoExistente);
+      }
+    }
+
+    function excluirCasa(index) {
+      const q = quadras.find(item => item.id === quadraAbertaId);
+      if (!q || !q.casas) return;
+
+      if (confirm("Tem certeza que deseja excluir o registro desta casa?")) {
+        q.casas.splice(index, 1);
+        if (indexCasaEditando === index) {
+          cancelarEdicao();
+        }
+        salvar();
+        renderizarListaGaleria(q);
+      }
+    }
+
+    renderizar();
+    atualizarTotais();
+  </script>
+</body>
+</html>
