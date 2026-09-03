@@ -150,5 +150,12 @@ function limparLotesMapa() {
   const script = document.createElement('script');
   script.src = 'js/lote-assistente.js';
   script.dataset.assistenteLotes = '1';
+  script.onload = () => {
+    if (document.querySelector('script[data-filtro-geografico]')) return;
+    const filtro = document.createElement('script');
+    filtro.src = 'js/filtro-geografico.js';
+    filtro.dataset.filtroGeografico = '1';
+    document.body.appendChild(filtro);
+  };
   document.body.appendChild(script);
 })();
