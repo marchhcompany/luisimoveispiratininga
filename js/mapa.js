@@ -32,9 +32,11 @@ function popularFiltroQuadrasMapa() {
 
 function criarMapaSeNecessario() {
   if (mapaTerritorial) return;
-  mapaTerritorial = L.map('mapa-territorial', { zoomControl: true }).setView([-22.9528, -43.0612], 15);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  mapaTerritorial = L.map('mapa-territorial', { zoomControl: true, preferCanvas: true }).setView([-22.9528, -43.0612], 15);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 20,
+    updateWhenIdle: true,
+    keepBuffer: 5,
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(mapaTerritorial);
   camadaImoveis = L.layerGroup().addTo(mapaTerritorial);
@@ -47,14 +49,34 @@ function criarMapaSeNecessario() {
   }).addTo(mapaTerritorial);
 }
 
+function preaquecerTilesMapa() {
+  const lat = -22.9528, lng = -43.0612;
+  [15,16].forEach(z => {
+    const n = 2 ** z;
+    const x = Math.floor((lng + 180) / 360 * n);
+    const latRad = lat * Math.PI / 180;
+    const y = Math.floor((1 - Math.asinh(Math.tan(latRad)) / Math.PI) / 2 * n);
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = `https://tile.openstreetmap.org/${z}/${x + dx}/${y + dy}.png`;
+      }
+    }
+  });
+}
+
 function abrirMapaTerritorial() {
+  const status = document.getElementById('mapa-status');
+  if (status) status.innerText = 'Abrindo mapa territorial...';
   document.getElementById('modal-mapa')?.classList.remove('hidden');
   popularFiltroQuadrasMapa();
   criarMapaSeNecessario();
-  setTimeout(() => {
-    mapaTerritorial.invalidateSize();
+  requestAnimationFrame(() => {
+    mapaTerritorial.invalidateSize(false);
     renderizarImoveisNoMapa(true);
-  }, 80);
+    if (status) status.innerText = 'Mapa pronto. Aproxime para carregar os lotes oficiais quando precisar.';
+  });
 }
 
 function fecharMapaTerritorial() {
@@ -69,7 +91,7 @@ function renderizarImoveisNoMapa(ajustar=false) {
   const bounds = [];
   itens.forEach(({q,casa,index,lat,lng}) => {
     const endereco = typeof enderecoCasa === 'function' ? enderecoCasa(casa) : (casa.rua || casa.endereco || 'Endereço a preencher');
-    const foto = casa.foto ? `<img src="${escMapa(casa.foto)}" style="width:100%;height:90px;object-fit:cover;border-radius:8px;margin:6px 0">` : '';
+    const foto = casa.foto ? `<img src="${escMapa(casa.foto)}" loading="lazy" style="width:100%;height:90px;object-fit:cover;border-radius:8px;margin:6px 0">` : '';
     const marker = L.marker([lat,lng]).addTo(camadaImoveis);
     marker.bindPopup(`<div style="min-width:210px">${foto}<strong>${escMapa(endereco)}</strong><br><span>${escMapa(q.tag)} — ${escMapa(q.nome)}</span><br><span>Lote: ${escMapa(casa.lote || '—')}</span><br><button onclick="abrirImovelDoMapa(${q.id},${index})" style="margin-top:8px;padding:6px 9px;border:0;border-radius:7px;background:#0284c7;color:#fff;font-weight:700;cursor:pointer">Abrir imóvel</button></div>`);
     bounds.push([lat,lng]);
@@ -144,6 +166,17 @@ function limparLotesMapa() {
   const status = document.getElementById('mapa-status');
   if (status) status.innerText = 'Camada de lotes limpa.';
 }
+
+(function carregarAjustesFinais(){
+  if (!document.querySelector('script[data-apresentacao-v6]')) {
+    const final = document.createElement('script');
+    final.src = 'js/apresentacao-v6.js';
+    final.dataset.apresentacaoV6 = '1';
+    document.body.appendChild(final);
+  }
+  if ('requestIdleCallback' in window) requestIdleCallback(preaquecerTilesMapa, {timeout:1800});
+  else setTimeout(preaquecerTilesMapa, 700);
+})();
 
 (function carregarAssistenteEmLote(){
   if (document.querySelector('script[data-assistente-lotes]')) return;
