@@ -6,6 +6,8 @@
   <title>Mapeamento Territorial | Luis Imóveis</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,6 +17,8 @@
     .gradient-line{height:1.5px;background:linear-gradient(90deg,rgba(239,68,68,.7),rgba(244,63,94,.4) 30%,rgba(20,184,166,0))}
     .dragging{opacity:.45;transform:scale(.98)}
     .drag-over{outline:2px solid #0094ff;outline-offset:2px}
+    #mapa-territorial{height:min(70vh,720px);min-height:420px;background:#07152a}
+    .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#081427;color:#e2e8f0}
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-sky-500 selection:text-white">
@@ -25,7 +29,8 @@
       <div><div class="text-[11px] font-bold tracking-widest text-[#0094ff] uppercase">LUIS IMÓVEIS — NITERÓI/RJ</div><h1 class="text-2xl md:text-[28px] font-extrabold text-white tracking-tight flex flex-wrap items-center gap-2 mt-0.5"><span>Mapeamento Territorial</span><span class="text-red-500 font-normal">|</span><span>Setor Praia de Piratininga</span></h1><p class="text-xs text-slate-400 mt-1">Controle de rondas por quadra — imóveis mapeados e captação ativa em campo</p></div>
     </div>
     <div class="flex flex-wrap items-center gap-3 self-start md:self-center">
-      <span class="px-3 py-2 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 text-xs font-bold">V2 • Mapeamento inteligente</span>
+      <span class="px-3 py-2 rounded-xl bg-cyan-950/40 border border-cyan-800/60 text-cyan-300 text-xs font-bold">V3 • Mapa territorial</span>
+      <button onclick="abrirMapaTerritorial()" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-semibold flex items-center gap-2 transition"><i data-lucide="map" class="w-4 h-4"></i> Mapa Territorial</button>
       <button onclick="abrirGerenciadorQuadras()" class="px-4 py-2 rounded-xl bg-[#0b1b36] hover:bg-[#14305c] border border-[#1d3d70] text-sky-300 text-sm font-semibold flex items-center gap-2 transition"><i data-lucide="settings-2" class="w-4 h-4"></i> Gerenciar Quadras</button>
       <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-[#09152b] hover:bg-[#0f2244] border border-[#172e54] text-slate-200 text-sm font-semibold flex items-center gap-2 transition"><i data-lucide="printer" class="w-4 h-4"></i> Exportar PDF</button>
       <a href="https://share.google/sYSDxmyIQBpDsvbMp~" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-xl bg-[#0094ff] hover:bg-[#0080dd] text-white text-sm font-semibold flex items-center gap-2 transition"><i data-lucide="plus" class="w-4 h-4"></i> Nova Captação</a>
@@ -39,11 +44,28 @@
     <div class="bg-[#081427] border border-[#122543] rounded-2xl p-6"><div class="flex items-start justify-between"><span class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Imóveis Mapeados</span><i data-lucide="home" class="w-5 h-5 text-rose-400"></i></div><div id="stat-imoveis" class="text-4xl font-extrabold text-[#0094ff] tracking-tight mt-4">0</div><div class="text-xs text-slate-400 mt-1 flex items-center justify-between"><span>Total mapeado nas quadras</span><span id="stat-importados" class="text-sky-400 font-semibold">0 via GitHub</span></div></div>
     <div class="bg-[#081427] border border-[#122543] rounded-2xl p-6"><div class="flex items-start justify-between"><span class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Contatos Realizados</span><i data-lucide="handshake" class="w-5 h-5 text-sky-400"></i></div><div id="stat-contatos" class="text-4xl font-extrabold text-[#0094ff] tracking-tight mt-4">0</div><div class="text-xs text-slate-400 mt-1">Proprietários e portarias</div></div>
   </section>
-  <section class="bg-[#081427] border border-[#122543] rounded-2xl px-5 py-4 flex flex-col md:flex-row md:items-center justify-between gap-3"><div class="flex items-center gap-3.5"><div class="w-8 h-8 rounded-full bg-[#0c1f3c] border border-[#152e54] text-[#0094ff] flex items-center justify-center"><i data-lucide="map-pin" class="w-4 h-4"></i></div><div><div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Setor Monitorado</div><div id="setor-contagem" class="text-[13px] font-semibold text-slate-100 mt-0.5">Praia de Piratininga</div></div></div><div class="text-[11px] text-slate-400">V2: <span class="text-sky-400 font-semibold">ordenação das casas + GPS + consulta de lotes da Prefeitura</span></div></section>
+  <section class="bg-[#081427] border border-[#122543] rounded-2xl px-5 py-4 flex flex-col md:flex-row md:items-center justify-between gap-3"><div class="flex items-center gap-3.5"><div class="w-8 h-8 rounded-full bg-[#0c1f3c] border border-[#152e54] text-[#0094ff] flex items-center justify-center"><i data-lucide="map-pin" class="w-4 h-4"></i></div><div><div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Setor Monitorado</div><div id="setor-contagem" class="text-[13px] font-semibold text-slate-100 mt-0.5">Praia de Piratininga</div></div></div><div class="text-[11px] text-slate-400">V3: <span class="text-sky-400 font-semibold">GPS + imóveis no mapa + lotes oficiais da Prefeitura</span></div></section>
   <section id="grid-quadras" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></section>
 </main>
 
 <footer class="border-t border-[#0e1d37] bg-[#040915] py-7 px-6 text-center text-xs space-y-2 text-slate-400"><div class="font-medium"><span class="text-[#0094ff] font-semibold">Luis Imóveis Niterói</span> <span class="text-slate-600">|</span> Ferramenta Operacional de Captação Territorial</div><div>CRECI: 7888 <span class="text-red-500 font-bold mx-1.5">•</span> Tradição na Região Oceânica <span class="text-red-500 font-bold mx-1.5">•</span> <a href="https://www.luisimoveis.com.br" target="_blank" class="text-[#0094ff] hover:underline">Portal de Comercialização</a></div></footer>
+
+<div id="modal-mapa" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[70] hidden flex items-center justify-center p-3 md:p-5">
+  <div class="bg-[#081427] border border-[#1b355e] w-full max-w-[1500px] max-h-[96vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+    <div class="p-4 md:p-5 border-b border-[#122543] flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div><span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Mapa operacional</span><h2 class="text-lg font-bold text-white">Mapa Territorial de Piratininga</h2><p class="text-[11px] text-slate-400 mt-1">Imóveis com GPS + camada oficial de lotes da Prefeitura de Niterói</p></div>
+      <div class="flex flex-wrap items-center gap-2">
+        <select id="mapa-filtro-quadra" onchange="renderizarImoveisNoMapa(true)" class="px-3 py-2 bg-[#050f1f] border border-[#1b355e] rounded-lg text-xs text-white"></select>
+        <button onclick="localizarNoMapa()" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg flex items-center gap-1.5"><i data-lucide="locate-fixed" class="w-4 h-4"></i> Minha localização</button>
+        <button onclick="carregarLotesVisiveis()" class="px-3 py-2 bg-cyan-800 hover:bg-cyan-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5"><i data-lucide="land-plot" class="w-4 h-4"></i> Carregar lotes</button>
+        <button onclick="limparLotesMapa()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg">Limpar lotes</button>
+        <button onclick="fecharMapaTerritorial()" class="text-slate-400 hover:text-white p-2"><i data-lucide="x" class="w-6 h-6"></i></button>
+      </div>
+    </div>
+    <div class="px-4 py-2.5 border-b border-[#122543] bg-[#050f1f] flex flex-col md:flex-row md:items-center justify-between gap-2"><span id="mapa-contador" class="text-xs font-semibold text-sky-300">0 imóveis com GPS</span><span id="mapa-status" class="text-[10px] text-slate-400">Para ver os polígonos dos lotes, aproxime o mapa e clique em “Carregar lotes”.</span></div>
+    <div id="mapa-territorial" class="w-full flex-1"></div>
+  </div>
+</div>
 
 <div id="modal-quadras" class="fixed inset-0 bg-black/85 backdrop-blur-md z-[60] hidden flex items-center justify-center p-4">
   <div class="bg-[#081427] border border-[#1b355e] w-full max-w-4xl max-h-[92vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
@@ -84,6 +106,7 @@
 
 <script src="data/imoveis-importados.js"></script>
 <script src="js/app.js"></script>
+<script src="js/mapa.js"></script>
 <script>if(window.lucide)lucide.createIcons();</script>
 </body>
 </html>
