@@ -144,3 +144,11 @@ function limparLotesMapa() {
   const status = document.getElementById('mapa-status');
   if (status) status.innerText = 'Camada de lotes limpa.';
 }
+
+(function carregarAssistenteEmLote(){
+  if (document.querySelector('script[data-assistente-lotes]')) return;
+  const script = document.createElement('script');
+  script.src = 'js/lote-assistente.js';
+  script.dataset.assistenteLotes = '1';
+  document.body.appendChild(script);
+})();
