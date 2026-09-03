@@ -21,11 +21,16 @@ if (-not (Test-Path $Origem)) {
 New-Item -ItemType Directory -Force -Path $destino | Out-Null
 New-Item -ItemType Directory -Force -Path (Split-Path $manifestPath -Parent) | Out-Null
 
-$extensoes = @('.jpg', '.jpeg', '.png', '.webp', '.heic')
+$extensoes = @('.jpg', '.jpeg', '.png', '.webp')
 $fotos = Get-ChildItem -Path $Origem -File | Where-Object { $extensoes -contains $_.Extension.ToLower() } | Sort-Object Name
+$heic = Get-ChildItem -Path $Origem -File | Where-Object { $_.Extension.ToLower() -eq '.heic' }
+
+if ($heic.Count -gt 0) {
+  Write-Warning "$($heic.Count) arquivo(s) HEIC ignorado(s). Converta para JPG/WEBP antes de importar para garantir exibição no navegador."
+}
 
 if ($fotos.Count -eq 0) {
-  throw 'Nenhuma imagem encontrada na pasta informada.'
+  throw 'Nenhuma imagem JPG, JPEG, PNG ou WEBP encontrada na pasta informada.'
 }
 
 $existentes = Get-ChildItem -Path $destino -File -ErrorAction SilentlyContinue
