@@ -11,6 +11,14 @@
     8: 'Rua João Gomes da Silva (antiga Rua 122)'
   };
 
+  function carregarAjustesV7() {
+    if (document.querySelector('script[data-ajustes-v7]')) return;
+    const script = document.createElement('script');
+    script.src = 'js/ajustes-finais-v7.js';
+    script.dataset.ajustesV7 = '1';
+    document.body.appendChild(script);
+  }
+
   function aplicar() {
     if (!Array.isArray(quadras)) return;
     let alterou = false;
@@ -29,6 +37,7 @@
     if (alterou && typeof persistir === 'function') persistir();
     if (typeof renderizar === 'function') renderizar();
     if (typeof atualizarTotais === 'function') atualizarTotais();
+    carregarAjustesV7();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', aplicar);
