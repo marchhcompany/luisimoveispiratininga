@@ -7,7 +7,7 @@
   }
 
   const firebaseConfig = {
-    apiKey: 'AIzaSyDBGWsXFacb-ikX9w0CCoPCgg0ZvBL-cp8',
+    apiKey: 'AIzaSyDBGWsXFacb-ikX9w0CCoPCggOZvBL-cp8',
     authDomain: 'luis-imoveis.firebaseapp.com',
     projectId: 'luis-imoveis',
     storageBucket: 'luis-imoveis.firebasestorage.app',
