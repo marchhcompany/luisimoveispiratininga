@@ -15,9 +15,9 @@
     appId: '1:683878263883:web:4aad77338be8dfbd26f1ce'
   };
 
-  const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth(app);
-  const db = firebase.firestore(app);
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
   const estadoRef = db.collection('sistema').doc('estado');
 
   let usuarioAtual = null;
@@ -29,16 +29,19 @@
   const persistirLocalOriginal = typeof window.persistir === 'function' ? window.persistir : null;
 
   function sanitizarQuadras() {
-    return (window.quadras || quadras || []).map(q => ({
+    const origem = typeof quadras !== 'undefined' && Array.isArray(quadras) ? quadras : [];
+    const dados = origem.map(q => ({
       ...q,
       casas: (q.casas || []).map(c => {
         const copia = { ...c };
-        // Arquivos escolhidos diretamente no navegador viram data URLs muito grandes para o Firestore.
-        // Mantemos o registro e os demais dados, mas a foto precisa continuar no GitHub/URL até migrarmos para Storage.
+        // Arquivos escolhidos diretamente no navegador viram data URLs grandes demais para este documento.
+        // A foto permanece local; fotos compartilhadas continuam via GitHub/URL até migrarmos para Firebase Storage.
         if (typeof copia.foto === 'string' && copia.foto.startsWith('data:')) copia.foto = '';
         return copia;
       })
     }));
+    // Remove campos undefined, que o Firestore rejeita.
+    return JSON.parse(JSON.stringify(dados));
   }
 
   function setStatus(texto, tipo = 'normal') {
@@ -53,8 +56,9 @@
       }
     }
     if (!el) return;
-    el.textContent = texto;
-    el.className = `text-[10px] mt-1 md:mt-0 ${tipo === 'erro' ? 'text-rose-400' : tipo === 'ok' ? 'text-emerald-400' : 'text-slate-400'}`;
+    if (el.textContent !== texto) el.textContent = texto;
+    const classe = `text-[10px] mt-1 md:mt-0 ${tipo === 'erro' ? 'text-rose-400' : tipo === 'ok' ? 'text-emerald-400' : 'text-slate-400'}`;
+    if (el.className !== classe) el.className = classe;
   }
 
   function formatarData(timestamp) {
@@ -85,9 +89,9 @@
 
     esconderLeitor.forEach(seletor => {
       document.querySelectorAll(seletor).forEach(el => {
-        if (!el.dataset.displayOriginal) el.dataset.displayOriginal = el.style.display || '';
-        if (!autenticado) el.style.display = 'none';
-        else el.style.display = el.dataset.displayOriginal;
+        if (el.dataset.displayOriginal === undefined) el.dataset.displayOriginal = el.style.display || '';
+        const desejado = autenticado ? el.dataset.displayOriginal : 'none';
+        if (el.style.display !== desejado) el.style.display = desejado;
       });
     });
 
@@ -100,49 +104,49 @@
       if (topo) topo.appendChild(botao);
     }
     if (botao) {
-      botao.innerHTML = autenticado ? '<span>Admin conectado</span>' : '<span>Entrar para editar</span>';
+      const html = autenticado ? '<span>Admin conectado</span>' : '<span>Entrar para editar</span>';
+      if (botao.innerHTML !== html) botao.innerHTML = html;
       botao.onclick = autenticado ? () => auth.signOut() : abrirLogin;
     }
   }
 
   function abrirLogin() {
     let modal = document.getElementById('modal-firebase-login');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'modal-firebase-login';
-      modal.className = 'fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex items-center justify-center p-4';
-      modal.innerHTML = `
-        <div class="w-full max-w-sm bg-[#081427] border border-[#1b355e] rounded-2xl p-6 shadow-2xl">
-          <div class="flex items-start justify-between gap-3 mb-5">
-            <div><div class="text-xs font-bold uppercase tracking-wider text-sky-400">Acesso administrativo</div><h2 class="text-xl font-bold text-white mt-1">Entrar para editar</h2><p class="text-xs text-slate-400 mt-1">Use o usuário criado no Firebase Authentication.</p></div>
-            <button id="firebase-login-fechar" class="text-slate-400 hover:text-white text-xl">×</button>
-          </div>
-          <form id="firebase-login-form" class="space-y-3">
-            <input id="firebase-login-email" type="email" required autocomplete="username" placeholder="E-mail" class="w-full px-3 py-2.5 rounded-lg bg-[#050f1f] border border-[#1b355e] text-sm text-white focus:outline-none focus:border-sky-500">
-            <input id="firebase-login-senha" type="password" required autocomplete="current-password" placeholder="Senha" class="w-full px-3 py-2.5 rounded-lg bg-[#050f1f] border border-[#1b355e] text-sm text-white focus:outline-none focus:border-sky-500">
-            <div id="firebase-login-erro" class="hidden text-xs text-rose-400"></div>
-            <button type="submit" class="w-full px-4 py-2.5 rounded-lg bg-[#0094ff] hover:bg-[#0080dd] text-white text-sm font-bold">Entrar</button>
-          </form>
-        </div>`;
-      document.body.appendChild(modal);
-      modal.querySelector('#firebase-login-fechar').onclick = () => modal.remove();
-      modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-      modal.querySelector('#firebase-login-form').addEventListener('submit', async e => {
-        e.preventDefault();
-        const email = modal.querySelector('#firebase-login-email').value.trim();
-        const senha = modal.querySelector('#firebase-login-senha').value;
-        const erro = modal.querySelector('#firebase-login-erro');
-        erro.classList.add('hidden');
-        try {
-          await auth.signInWithEmailAndPassword(email, senha);
-          modal.remove();
-        } catch (e) {
-          erro.textContent = 'Não foi possível entrar. Confira e-mail e senha.';
-          erro.classList.remove('hidden');
-          console.error(e);
-        }
-      });
-    }
+    if (modal) return;
+    modal = document.createElement('div');
+    modal.id = 'modal-firebase-login';
+    modal.className = 'fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex items-center justify-center p-4';
+    modal.innerHTML = `
+      <div class="w-full max-w-sm bg-[#081427] border border-[#1b355e] rounded-2xl p-6 shadow-2xl">
+        <div class="flex items-start justify-between gap-3 mb-5">
+          <div><div class="text-xs font-bold uppercase tracking-wider text-sky-400">Acesso administrativo</div><h2 class="text-xl font-bold text-white mt-1">Entrar para editar</h2><p class="text-xs text-slate-400 mt-1">Use o usuário criado no Firebase Authentication.</p></div>
+          <button id="firebase-login-fechar" class="text-slate-400 hover:text-white text-xl">×</button>
+        </div>
+        <form id="firebase-login-form" class="space-y-3">
+          <input id="firebase-login-email" type="email" required autocomplete="username" placeholder="E-mail" class="w-full px-3 py-2.5 rounded-lg bg-[#050f1f] border border-[#1b355e] text-sm text-white focus:outline-none focus:border-sky-500">
+          <input id="firebase-login-senha" type="password" required autocomplete="current-password" placeholder="Senha" class="w-full px-3 py-2.5 rounded-lg bg-[#050f1f] border border-[#1b355e] text-sm text-white focus:outline-none focus:border-sky-500">
+          <div id="firebase-login-erro" class="hidden text-xs text-rose-400"></div>
+          <button type="submit" class="w-full px-4 py-2.5 rounded-lg bg-[#0094ff] hover:bg-[#0080dd] text-white text-sm font-bold">Entrar</button>
+        </form>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.querySelector('#firebase-login-fechar').onclick = () => modal.remove();
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+    modal.querySelector('#firebase-login-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const email = modal.querySelector('#firebase-login-email').value.trim();
+      const senha = modal.querySelector('#firebase-login-senha').value;
+      const erro = modal.querySelector('#firebase-login-erro');
+      erro.classList.add('hidden');
+      try {
+        await auth.signInWithEmailAndPassword(email, senha);
+        modal.remove();
+      } catch (e) {
+        erro.textContent = 'Não foi possível entrar. Confira e-mail e senha.';
+        erro.classList.remove('hidden');
+        console.error(e);
+      }
+    });
   }
 
   function salvarRemotoEmBreve() {
@@ -175,7 +179,7 @@
   }
 
   async function semearSeNecessario() {
-    if (!usuarioAtual || remotoExiste) return;
+    if (!usuarioAtual || remotoExiste || !primeiraLeituraConcluida) return;
     try {
       setStatus('Criando a base compartilhada pela primeira vez...');
       await estadoRef.set({
@@ -201,7 +205,6 @@
       aplicandoRemoto = true;
       try {
         const novas = dados.quadras.map((q, i) => typeof normalizarQuadra === 'function' ? normalizarQuadra(q, i) : q);
-        if (typeof window.quadras !== 'undefined') window.quadras = novas;
         try { quadras = novas; } catch (_) {}
         if (persistirLocalOriginal) persistirLocalOriginal();
         if (typeof renderizar === 'function') renderizar();
@@ -224,9 +227,7 @@
   auth.onAuthStateChanged(user => {
     usuarioAtual = user || null;
     aplicarModoAcesso();
-    if (usuarioAtual) {
-      setTimeout(semearSeNecessario, 300);
-    }
+    if (usuarioAtual) setTimeout(semearSeNecessario, 300);
   });
 
   const observer = new MutationObserver(() => aplicarModoAcesso());
