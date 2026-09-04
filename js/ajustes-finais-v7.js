@@ -5,16 +5,15 @@
 
   function atualizarTextosPainel() {
     const stat = document.getElementById('stat-concluidas');
-    if (stat) {
-      const card = stat.closest('.bg-\\[\\#081427\\]') || stat.parentElement;
-      const titulo = card?.querySelector('span.text-\\[11px\\]');
-      if (titulo) titulo.textContent = 'Áreas Mapeadas';
-      const descricoes = card?.querySelectorAll('.text-xs.text-slate-400');
-      if (descricoes?.length) descricoes[descricoes.length - 1].textContent = 'Trechos percorridos até o momento';
-    }
+    if (!stat) return;
+    const card = stat.parentElement;
+    const titulo = card?.querySelector('span');
+    if (titulo) titulo.textContent = 'Áreas Mapeadas';
+    const descricoes = card?.querySelectorAll('div.text-xs');
+    if (descricoes?.length) descricoes[descricoes.length - 1].textContent = 'Trechos percorridos até o momento';
   }
 
-  // O painel deve mostrar quantas áreas já foram trabalhadas, e não "7 de 8".
+  // O painel mostra áreas já trabalhadas, sem sugerir que Piratininga tenha somente 8 quadras.
   window.atualizarTotais = function atualizarTotaisV7() {
     recalcular();
     const concluidas = quadras.filter(q => q.status === 'Captação Realizada').length;
@@ -32,7 +31,7 @@
     atualizarTextosPainel();
   };
 
-  // Carrega a galeria em blocos para não solicitar dezenas de fotos de uma vez.
+  // A galeria abre apenas as primeiras 8 fotos. As demais entram em blocos sob demanda.
   window.renderizarListaGaleria = function renderizarListaGaleriaV7(q) {
     const container = document.getElementById('galeria-lista');
     if (!container) return;
@@ -86,7 +85,7 @@
     return abrirGaleriaOriginal(id);
   };
 
-  // Ajuda o navegador a preparar a conexão do mapa sem disputar com as fotos.
+  // Prepara a conexão dos tiles do mapa para reduzir a espera na primeira abertura.
   if (!document.querySelector('link[data-osm-preconnect]')) {
     const link = document.createElement('link');
     link.rel = 'preconnect';
@@ -95,6 +94,20 @@
     link.dataset.osmPreconnect = '1';
     document.head.appendChild(link);
   }
+
+  let mapaPreparado = false;
+  function prepararMapa() {
+    if (mapaPreparado) return;
+    mapaPreparado = true;
+    try {
+      if (typeof preaquecerTilesMapa === 'function') preaquecerTilesMapa();
+    } catch (e) { console.debug('Pré-aquecimento do mapa adiado.', e); }
+  }
+  document.querySelectorAll('[onclick*="abrirMapaTerritorial"]').forEach(btn => {
+    btn.addEventListener('pointerenter', prepararMapa, {once:true});
+    btn.addEventListener('focus', prepararMapa, {once:true});
+    btn.addEventListener('touchstart', prepararMapa, {once:true, passive:true});
+  });
 
   atualizarTextosPainel();
   window.atualizarTotais();
