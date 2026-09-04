@@ -34,13 +34,10 @@
       ...q,
       casas: (q.casas || []).map(c => {
         const copia = { ...c };
-        // Arquivos escolhidos diretamente no navegador viram data URLs grandes demais para este documento.
-        // A foto permanece local; fotos compartilhadas continuam via GitHub/URL até migrarmos para Firebase Storage.
         if (typeof copia.foto === 'string' && copia.foto.startsWith('data:')) copia.foto = '';
         return copia;
       })
     }));
-    // Remove campos undefined, que o Firestore rejeita.
     return JSON.parse(JSON.stringify(dados));
   }
 
@@ -110,6 +107,23 @@
     }
   }
 
+  function mensagemErroLogin(e) {
+    const codigo = e?.code || 'erro-desconhecido';
+    const mapa = {
+      'auth/invalid-credential': 'E-mail ou senha inválidos no Firebase Authentication.',
+      'auth/user-not-found': 'Este e-mail não existe neste projeto do Firebase.',
+      'auth/wrong-password': 'A senha informada não confere.',
+      'auth/invalid-email': 'O formato do e-mail é inválido.',
+      'auth/user-disabled': 'Este usuário está desativado no Firebase.',
+      'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
+      'auth/network-request-failed': 'Falha de rede ao falar com o Firebase.',
+      'auth/operation-not-allowed': 'O login por e-mail/senha não está habilitado no Firebase.',
+      'auth/unauthorized-domain': 'Este domínio não está autorizado no Firebase Authentication.',
+      'auth/api-key-not-valid.-please-pass-a-valid-api-key.': 'A chave do app Firebase não foi aceita.'
+    };
+    return `${mapa[codigo] || (e?.message || 'Não foi possível entrar.')} (${codigo})`;
+  }
+
   function abrirLogin() {
     let modal = document.getElementById('modal-firebase-login');
     if (modal) return;
@@ -125,7 +139,7 @@
         <form id="firebase-login-form" class="space-y-3">
           <input id="firebase-login-email" type="email" required autocomplete="username" placeholder="E-mail" class="w-full px-3 py-2.5 rounded-lg bg-[#050f1f] border border-[#1b355e] text-sm text-white focus:outline-none focus:border-sky-500">
           <input id="firebase-login-senha" type="password" required autocomplete="current-password" placeholder="Senha" class="w-full px-3 py-2.5 rounded-lg bg-[#050f1f] border border-[#1b355e] text-sm text-white focus:outline-none focus:border-sky-500">
-          <div id="firebase-login-erro" class="hidden text-xs text-rose-400"></div>
+          <div id="firebase-login-erro" class="hidden text-xs text-rose-400 leading-relaxed"></div>
           <button type="submit" class="w-full px-4 py-2.5 rounded-lg bg-[#0094ff] hover:bg-[#0080dd] text-white text-sm font-bold">Entrar</button>
         </form>
       </div>`;
@@ -138,13 +152,14 @@
       const senha = modal.querySelector('#firebase-login-senha').value;
       const erro = modal.querySelector('#firebase-login-erro');
       erro.classList.add('hidden');
+      erro.textContent = '';
       try {
         await auth.signInWithEmailAndPassword(email, senha);
         modal.remove();
       } catch (e) {
-        erro.textContent = 'Não foi possível entrar. Confira e-mail e senha.';
+        erro.textContent = mensagemErroLogin(e);
         erro.classList.remove('hidden');
-        console.error(e);
+        console.error('Firebase login:', e?.code, e?.message, e);
       }
     });
   }
@@ -170,7 +185,6 @@
     }, 500);
   }
 
-  // Mantém o comportamento local existente e acrescenta a sincronização na nuvem.
   if (persistirLocalOriginal) {
     window.persistir = function persistirComFirebase() {
       persistirLocalOriginal();
