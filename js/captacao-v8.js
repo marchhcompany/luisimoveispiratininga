@@ -41,6 +41,45 @@
     return null;
   }
 
+  // ---------- Ligar / WhatsApp ----------
+  const ORDEM_FILA = { 'Retornar': 0, 'Não contatado': 1, 'Sem resposta': 2 };
+  function telefonesDe(casa) {
+    return [...new Set((String(casa.telefone || '').match(/(?:\(?\d{2}\)?\s*)?9?\d{4}[-\s]?\d{4}/g) || [])
+      .map(t => t.replace(/\D/g, ''))
+      .map(d => (d.length === 8 || d.length === 9) ? '21' + d : d)
+      .filter(d => d.length === 10 || d.length === 11))];
+  }
+  function mensagemWhatsApp(casa) {
+    const end = enderecoCasa(casa).replace(/ — rua a confirmar no local/, '');
+    const semRua = /^Nº/.test(end);
+    // Só cumprimenta pelo nome quando há um único proprietário (com vários, o telefone pode ser de outro).
+    const prop = String(casa.proprietario || '');
+    const nome = prop && !prop.includes('/') && !/\(/.test(prop) && !/LTDA|EMPREEND|S\/A|IMOBILI/i.test(prop) ? prop.trim().split(/\s+/)[0] : '';
+    const saud = nome ? `Olá, ${nome.charAt(0)}${nome.slice(1).toLowerCase()}!` : 'Olá!';
+    if (casa.situacao === 'Particular') return `${saud} Vi a placa no imóvel ${semRua ? end.replace('Nº', 'nº') : 'da ' + end}, em Piratininga. Sou da Luis Imóveis (CRECI 7888) e temos clientes procurando nessa região. Ainda está disponível? Posso te ligar rapidinho?`;
+    return `${saud} Sou da Luis Imóveis (Piratininga, CRECI 7888). Estamos fazendo um trabalho na orla e temos clientes procurando imóveis perto ${semRua ? 'do imóvel ' + end.replace('Nº', 'nº') : 'da ' + end}. Você teria interesse em vender ou alugar? Posso fazer uma avaliação gratuita, sem compromisso.`;
+  }
+  function botoesContato(casa) {
+    return telefonesDe(casa).map(d => `<span class="flex gap-1"><a href="tel:+55${d}" class="px-2 py-1 rounded-md bg-emerald-800 hover:bg-emerald-700 text-white text-[10px] font-bold">📞 (${d.slice(0, 2)}) ${d.slice(2)}</a><a href="https://wa.me/55${d}?text=${encodeURIComponent(mensagemWhatsApp(casa))}" target="_blank" rel="noopener" class="px-2 py-1 rounded-md bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold">WhatsApp</a></span>`).join('');
+  }
+  function seletorStatus(casa) {
+    const atual = casa.statusContato || 'Não contatado';
+    return `<select data-v8-status="${textoSeguro(casa.id)}" onclick="event.stopPropagation()" class="text-[10px] px-1.5 py-1 rounded-md bg-[#081427] border border-[#1b355e] text-slate-200">${Object.keys(STATUS_CORES).map(k => `<option ${k === atual ? 'selected' : ''}>${k}</option>`).join('')}</select>`;
+  }
+  // Troca de status direto no card / na fila, registrando data na observação.
+  document.addEventListener('change', e => {
+    const sel = e.target.closest?.('[data-v8-status]');
+    if (!sel) return;
+    const alvo = acharCasa(sel.dataset.v8Status);
+    if (!alvo) return;
+    if (!podeEditar()) { sel.value = alvo.casa.statusContato || 'Não contatado'; return; }
+    const data = new Date().toLocaleDateString('pt-BR');
+    alvo.casa.statusContato = sel.value;
+    alvo.casa.observacoes = `${alvo.casa.observacoes ? alvo.casa.observacoes + '\n' : ''}${data}: ${sel.value}`;
+    gravar();
+    if (!document.getElementById('v8-modal-fila')?.classList.contains('hidden')) renderizarFila();
+  });
+
   // ---------- Card do imóvel ----------
   window.blocoContatoCasa = function blocoContatoCasa(casa) {
     const status = casa.statusContato || 'Não contatado';
@@ -49,7 +88,8 @@
     const tel = casa.telefone ? `<p class="text-[11px] text-slate-300 flex items-start gap-1.5"><i data-lucide="phone" class="w-3 h-3 text-[#0094ff] shrink-0 mt-0.5"></i><span>${textoSeguro(casa.telefone)}</span></p>` : '';
     const obs = casa.observacoes ? `<p class="text-[10px] text-slate-400 leading-snug line-clamp-3" title="${textoSeguro(casa.observacoes)}">${textoSeguro(casa.observacoes)}</p>` : '';
     const vazio = !prop && !tel && !obs ? '<p class="text-[11px] text-slate-500 italic">Sem contato anotado</p>' : '';
-    return `<span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${cor}">${textoSeguro(status)}</span>${prop}${tel}${obs}${vazio}`;
+    const acoes = botoesContato(casa);
+    return `<div class="flex flex-wrap items-center gap-1.5"><span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${cor}">${textoSeguro(status)}</span>${seletorStatus(casa)}</div>${prop}${tel}${acoes ? `<div class="flex flex-wrap gap-1.5">${acoes}</div>` : ''}${obs}${vazio}`;
   };
 
   // ---------- Progresso de contato nos cards de quadra ----------
@@ -255,6 +295,42 @@
     lista.querySelectorAll('[data-v8-todos]').forEach(b => b.onclick = () => adicionarTodosLotes(b.dataset.v8Todos));
   }
 
+  // ---------- Fila de ligações ----------
+  function itensFila() {
+    const itens = [];
+    quadras.forEach(q => q.casas.forEach((c, i) => {
+      const st = c.statusContato || 'Não contatado';
+      if (!(st in ORDEM_FILA) || !telefonesDe(c).length) return;
+      itens.push({ q, c, i, prioridade: ORDEM_FILA[st] - (c.situacao === 'Particular' ? 0.5 : 0) });
+    }));
+    return itens.sort((a, b) => a.prioridade - b.prioridade || Number(a.q.id) - Number(b.q.id) || a.i - b.i);
+  }
+  function semTelefone() {
+    let n = 0;
+    quadras.forEach(q => q.casas.forEach(c => {
+      const st = c.statusContato || 'Não contatado';
+      if (st in ORDEM_FILA && !telefonesDe(c).length && c.situacao !== 'Terreno') n++;
+    }));
+    return n;
+  }
+  function renderizarFila() {
+    const lista = document.getElementById('v8-fila-lista');
+    if (!lista) return;
+    const itens = itensFila();
+    const aviso = `<div class="text-[11px] text-slate-400">${itens.length} imóvel(is) com telefone na fila • ${semTelefone()} ainda sem telefone (buscar proprietário pela inscrição).</div>`;
+    lista.innerHTML = aviso + (itens.length ? itens.map(({ q, c, i }) => {
+      const foto = c.foto ? `<img src="${textoSeguro(c.foto)}" loading="lazy" class="w-20 h-16 object-cover rounded-lg shrink-0">` : '';
+      return `<div class="bg-[#050f1f] border border-[#14294b] rounded-xl p-3 flex gap-3">${foto}<div class="min-w-0 flex-1 space-y-1.5"><div class="text-[10px] font-bold text-sky-400 uppercase">${textoSeguro(q.tag)} • card #${String(i + 1).padStart(2, '0')} • ${textoSeguro(c.situacao || '')}</div><div class="text-xs font-bold text-white">${textoSeguro(enderecoCasa(c))}</div>${window.blocoContatoCasa(c)}</div></div>`;
+    }).join('') : '<div class="py-10 text-center text-sm text-emerald-300">Nenhuma ligação pendente com telefone. ✔</div>');
+  }
+  window.abrirFilaLigacoes = function () {
+    const el = modal('v8-modal-fila', 'Fila de ligações', 'Contato com proprietários', 'v8-fila-lista',
+      '<span class="text-[10px] text-slate-500 hidden md:block">Ordem: retornar → placas particulares → não contatados → sem resposta</span>');
+    el.classList.remove('hidden');
+    renderizarFila();
+    if (window.lucide) lucide.createIcons();
+  };
+
   // ---------- Exportar lista de ligações ----------
   function exportarCSV() {
     const cab = ['Quadra', 'Card', 'Endereço', 'Inscrição', 'Situação', 'Proprietário', 'Telefone', 'Status do contato', 'Observações', 'Foto', 'Google Maps'];
@@ -315,7 +391,8 @@
     topo.insertAdjacentHTML('afterbegin',
       `<button id="v8-btn-sugestoes" onclick="abrirSugestoesAnalise()" class="${cls} bg-amber-600 hover:bg-amber-500 text-white"><i data-lucide="sparkles" class="w-4 h-4"></i> Sugestões <span data-n class="bg-black/30 rounded-full px-1.5 text-xs">0</span></button>` +
       `<button onclick="abrirLotesPrefeitura()" class="${cls} bg-[#0b1b36] hover:bg-[#14305c] border border-[#1d3d70] text-sky-300"><i data-lucide="land-plot" class="w-4 h-4"></i> Lotes da Prefeitura</button>` +
-      `<button onclick="exportarListaLigacoes()" class="${cls} bg-[#0b1b36] hover:bg-[#14305c] border border-[#1d3d70] text-emerald-300"><i data-lucide="phone-call" class="w-4 h-4"></i> Lista de ligações</button>`);
+      `<button onclick="abrirFilaLigacoes()" class="${cls} bg-emerald-700 hover:bg-emerald-600 text-white"><i data-lucide="phone-outgoing" class="w-4 h-4"></i> Fila de ligações</button>` +
+      `<button onclick="exportarListaLigacoes()" class="${cls} bg-[#0b1b36] hover:bg-[#14305c] border border-[#1d3d70] text-emerald-300"><i data-lucide="download" class="w-4 h-4"></i> Planilha</button>`);
     if (window.lucide) lucide.createIcons();
   }
 
