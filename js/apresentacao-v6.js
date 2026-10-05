@@ -8,7 +8,11 @@
     5: 'Rua Abdo Ami-Ramia (antiga Rua 119)',
     6: 'Rua Pietro Farzout (antiga Rua 120)',
     7: 'Rua Jorn. Francisco R. de Miranda (antiga Rua 121)',
-    8: 'Rua João Gomes da Silva (antiga Rua 122)'
+    8: 'Rua João Gomes da Silva (antiga Rua 122)',
+    9: 'Rua Dr. Namir Peralta',
+    10: 'Rua Vice-Alm. Zetho C. Caldas',
+    11: 'Rua Dr. Lisandro Motta',
+    12: 'Rua Dr. Romeu Marra da Silva'
   };
 
   function carregarScript(src, atributo) {
