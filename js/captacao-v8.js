@@ -214,6 +214,12 @@
       ignoradas.add(b.dataset.v8Ignorar); salvarIgnoradas(); renderizarSugestoes();
     });
   }
+  // As sugestões de alta confiança aparecem para todos (inclusive quem só abre o link);
+  // ficam gravadas na nuvem na próxima vez que um admin salvar qualquer coisa.
+  window.aplicarSugestoesAuto = function aplicarSugestoesAuto() {
+    sugestoesPendentes().filter(({ s }) => s.confianca !== 'conferir').forEach(({ s }) => aplicarSugestao(s));
+  };
+
   function aplicarTodasAltaConfianca() {
     if (!podeEditar()) return;
     const pend = sugestoesPendentes().filter(({ s }) => s.confianca !== 'conferir');
@@ -397,6 +403,7 @@
   }
 
   criarBotoes();
+  window.aplicarSugestoesAuto();
   renderizar();
   atualizarTotais();
   atualizarBotaoSugestoes();

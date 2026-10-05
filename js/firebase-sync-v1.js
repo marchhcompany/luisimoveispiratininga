@@ -218,8 +218,11 @@
     if (snapshot.exists && Array.isArray(dados?.quadras)) {
       aplicandoRemoto = true;
       try {
-        const novas = dados.quadras.map((q, i) => typeof normalizarQuadra === 'function' ? normalizarQuadra(q, i) : q);
+        let novas = dados.quadras.map((q, i) => typeof normalizarQuadra === 'function' ? normalizarQuadra(q, i) : q);
+        // Itens novos do manifesto do GitHub (ex.: lotes oficiais ainda não visitados) entram mesmo antes de um admin salvar.
+        if (typeof mesclarImportados === 'function') novas = mesclarImportados(novas);
         try { quadras = novas; } catch (_) {}
+        if (typeof window.aplicarSugestoesAuto === 'function') window.aplicarSugestoesAuto();
         if (persistirLocalOriginal) persistirLocalOriginal();
         if (typeof renderizar === 'function') renderizar();
         if (typeof atualizarTotais === 'function') atualizarTotais();

@@ -87,8 +87,9 @@ function mesclarImportados(base) {
     const q = base.find(x => Number(x.id) === Number(item.quadra));
     if (!q) return;
     if (!q.casas.some(c => c.id === item.id)) {
+      const { quadra, ...dados } = item;
       q.casas.push(normalizarCasa({
-        id:item.id, foto:item.foto, endereco:item.endereco || 'Endereço a preencher', situacao:item.situacao || 'Fechada', telefone:item.telefone || '', origem:'github'
+        ...dados, foto:item.foto || '', endereco:item.endereco || 'Endereço a preencher', situacao:item.situacao || 'Fechada', telefone:item.telefone || '', origem:'github'
       }, q.id, q.casas.length));
     }
   });
