@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'luis_territorial_quadras_v5';
 const LEGACY_STORAGE_KEYS = ['luis_territorial_quadras_v4', 'luis_territorial_quadras_v3'];
 const HIDDEN_KEY = 'luis_territorial_importados_ocultos_v1';
+const STATUS_CONTATO_FEITO = ['Sem resposta','Retornar','Recusou','Captado','Já é da Luis'];
 const LOTES_ENDPOINT = 'https://sig.niteroi.rj.gov.br/server/rest/services/Hosted/NGP_SMF_SEREC_A_LOTES_PUBLICO/FeatureServer/30/query';
 
 const quadrasPadrao = [
@@ -38,7 +39,10 @@ function normalizarCasa(casa, idQuadra, index) {
     lote: casa.lote || casa.inscricao || '',
     bairro: casa.bairro || '',
     latitude: casa.latitude || '',
-    longitude: casa.longitude || ''
+    longitude: casa.longitude || '',
+    proprietario: casa.proprietario || '',
+    statusContato: casa.statusContato || 'Não contatado',
+    observacoes: casa.observacoes || ''
   };
 }
 function normalizarQuadra(q, index = 0) {
@@ -97,7 +101,7 @@ function recalcular() {
   quadras.forEach(q => {
     q.casas = Array.isArray(q.casas) ? q.casas : [];
     q.imoveis = q.casas.length;
-    q.contatos = q.casas.filter(c => c.telefone && c.telefone.trim()).length;
+    q.contatos = q.casas.filter(c => STATUS_CONTATO_FEITO.includes(c.statusContato)).length;
   });
 }
 function persistir() {
@@ -189,15 +193,15 @@ function renderizarListaGaleria(q) {
 
 function editarCasa(index) {
   const q=quadras.find(x=>x.id===quadraAbertaId);if(!q||!q.casas[index])return;const c=q.casas[index];indexCasaEditando=index;
-  document.getElementById('cad-rua').value=c.rua||c.endereco||''; document.getElementById('cad-numero').value=c.numero||''; document.getElementById('cad-lote').value=c.lote||''; document.getElementById('cad-bairro').value=c.bairro||'Piratininga'; document.getElementById('cad-latitude').value=c.latitude||''; document.getElementById('cad-longitude').value=c.longitude||''; document.getElementById('cad-situacao').value=c.situacao||'Fechada'; document.getElementById('cad-telefone').value=c.telefone||''; document.getElementById('cad-foto-url').value=c.foto&&c.foto.startsWith('http')?c.foto:''; document.getElementById('cad-foto-arquivo').value=''; document.getElementById('form-titulo').innerHTML='<i data-lucide="edit-3" class="w-4 h-4 text-amber-400"></i> Editando imóvel'; document.getElementById('badge-modo-edicao').classList.remove('hidden'); document.getElementById('btn-submit-texto').innerText='Salvar Alterações'; document.getElementById('btn-cancelar-edicao').classList.remove('hidden'); document.getElementById('galeria-scroll-area').scrollTo({top:0,behavior:'smooth'}); if(window.lucide)lucide.createIcons();
+  document.getElementById('cad-rua').value=c.rua||c.endereco||''; document.getElementById('cad-numero').value=c.numero||''; document.getElementById('cad-lote').value=c.lote||''; document.getElementById('cad-bairro').value=c.bairro||'Piratininga'; document.getElementById('cad-latitude').value=c.latitude||''; document.getElementById('cad-longitude').value=c.longitude||''; document.getElementById('cad-situacao').value=c.situacao||'Fechada'; document.getElementById('cad-telefone').value=c.telefone||''; document.getElementById('cad-proprietario').value=c.proprietario||''; document.getElementById('cad-status-contato').value=c.statusContato||'Não contatado'; document.getElementById('cad-observacoes').value=c.observacoes||''; document.getElementById('cad-foto-url').value=c.foto&&c.foto.startsWith('http')?c.foto:''; document.getElementById('cad-foto-arquivo').value=''; document.getElementById('form-titulo').innerHTML='<i data-lucide="edit-3" class="w-4 h-4 text-amber-400"></i> Editando imóvel'; document.getElementById('badge-modo-edicao').classList.remove('hidden'); document.getElementById('btn-submit-texto').innerText='Salvar Alterações'; document.getElementById('btn-cancelar-edicao').classList.remove('hidden'); document.getElementById('galeria-scroll-area').scrollTo({top:0,behavior:'smooth'}); if(window.lucide)lucide.createIcons();
 }
 function cancelarEdicao() {
-  indexCasaEditando=null; ['cad-rua','cad-numero','cad-lote','cad-latitude','cad-longitude','cad-telefone','cad-foto-url'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); const bairro=document.getElementById('cad-bairro');if(bairro)bairro.value='Piratininga'; const arq=document.getElementById('cad-foto-arquivo');if(arq)arq.value=''; const sit=document.getElementById('cad-situacao');if(sit)sit.value='Fechada'; const st=document.getElementById('status-localizacao');if(st)st.innerText='No celular, permita o acesso ao GPS. O sistema consulta a camada pública de lotes da Prefeitura de Niterói.'; document.getElementById('form-titulo').innerHTML='<i data-lucide="map-pin" class="w-4 h-4 text-[#0094ff]"></i> Registrar imóvel'; document.getElementById('badge-modo-edicao')?.classList.add('hidden'); document.getElementById('btn-cancelar-edicao')?.classList.add('hidden'); document.getElementById('btn-submit-texto').innerText='Salvar Imóvel';
+  indexCasaEditando=null; ['cad-rua','cad-numero','cad-lote','cad-latitude','cad-longitude','cad-telefone','cad-foto-url','cad-proprietario','cad-observacoes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); const bairro=document.getElementById('cad-bairro');if(bairro)bairro.value='Piratininga'; const arq=document.getElementById('cad-foto-arquivo');if(arq)arq.value=''; const sit=document.getElementById('cad-situacao');if(sit)sit.value='Fechada'; const stc=document.getElementById('cad-status-contato');if(stc)stc.value='Não contatado'; const st=document.getElementById('status-localizacao');if(st)st.innerText='No celular, permita o acesso ao GPS. O sistema consulta a camada pública de lotes da Prefeitura de Niterói.'; document.getElementById('form-titulo').innerHTML='<i data-lucide="map-pin" class="w-4 h-4 text-[#0094ff]"></i> Registrar imóvel'; document.getElementById('badge-modo-edicao')?.classList.add('hidden'); document.getElementById('btn-cancelar-edicao')?.classList.add('hidden'); document.getElementById('btn-submit-texto').innerText='Salvar Imóvel';
 }
 function montarEndereco(rua,numero){return `${rua}${numero?`, nº ${numero}`:''}`;}
 function salvarCasa(event) {
-  event.preventDefault(); const q=quadras.find(x=>x.id===quadraAbertaId);if(!q)return; const arquivo=document.getElementById('cad-foto-arquivo'); const url=document.getElementById('cad-foto-url').value.trim(); const rua=document.getElementById('cad-rua').value.trim(); const numero=document.getElementById('cad-numero').value.trim(); const lote=document.getElementById('cad-lote').value.trim(); const bairro=document.getElementById('cad-bairro').value.trim(); const latitude=document.getElementById('cad-latitude').value.trim(); const longitude=document.getElementById('cad-longitude').value.trim(); const situacao=document.getElementById('cad-situacao').value; const telefone=document.getElementById('cad-telefone').value.trim();
-  function concluir(foto){const dados={rua,numero,lote,bairro,latitude,longitude,endereco:montarEndereco(rua,numero),situacao,telefone}; if(indexCasaEditando!==null){const atual=q.casas[indexCasaEditando];Object.assign(atual,dados);if(foto)atual.foto=foto;}else q.casas.push({id:`local-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,foto:foto||'',origem:'local',...dados}); cancelarEdicao();salvar();renderizarListaGaleria(q);}
+  event.preventDefault(); const q=quadras.find(x=>x.id===quadraAbertaId);if(!q)return; const arquivo=document.getElementById('cad-foto-arquivo'); const url=document.getElementById('cad-foto-url').value.trim(); const rua=document.getElementById('cad-rua').value.trim(); const numero=document.getElementById('cad-numero').value.trim(); const lote=document.getElementById('cad-lote').value.trim(); const bairro=document.getElementById('cad-bairro').value.trim(); const latitude=document.getElementById('cad-latitude').value.trim(); const longitude=document.getElementById('cad-longitude').value.trim(); const situacao=document.getElementById('cad-situacao').value; const telefone=document.getElementById('cad-telefone').value.trim(); const proprietario=document.getElementById('cad-proprietario').value.trim(); const statusContato=document.getElementById('cad-status-contato').value; const observacoes=document.getElementById('cad-observacoes').value.trim();
+  function concluir(foto){const dados={rua,numero,lote,bairro,latitude,longitude,endereco:montarEndereco(rua,numero),situacao,telefone,proprietario,statusContato,observacoes}; if(indexCasaEditando!==null){const atual=q.casas[indexCasaEditando];Object.assign(atual,dados);if(foto)atual.foto=foto;}else q.casas.push({id:`local-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,foto:foto||'',origem:'local',...dados}); cancelarEdicao();salvar();renderizarListaGaleria(q);}
   if(arquivo.files&&arquivo.files[0]){const reader=new FileReader();reader.onload=e=>concluir(e.target.result);reader.readAsDataURL(arquivo.files[0]);}else if(url)concluir(url);else concluir(indexCasaEditando!==null?q.casas[indexCasaEditando].foto:'');
 }
 function excluirCasa(index){const q=quadras.find(x=>x.id===quadraAbertaId);if(!q||!q.casas[index])return;if(!confirm('Tem certeza que deseja excluir este registro?'))return;const c=q.casas[index];if(c.origem==='github'&&c.id)ocultos.add(c.id);q.casas.splice(index,1);cancelarEdicao();salvar();renderizarListaGaleria(q);}

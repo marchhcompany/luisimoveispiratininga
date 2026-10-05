@@ -49,8 +49,18 @@
     const script = document.createElement('script');
     script.src = 'js/ajustes-finais-v7.js';
     script.dataset.ajustesV7 = '1';
-    script.onload = carregarFirebaseSync;
+    script.onload = () => carregarCaptacaoV8().finally(carregarFirebaseSync);
     document.body.appendChild(script);
+  }
+
+  async function carregarCaptacaoV8() {
+    try {
+      await carregarScript('data/lotes-prefeitura.js', 'data-lotes-prefeitura');
+      await carregarScript('data/sugestoes-analise.js', 'data-sugestoes-analise');
+      await carregarScript('js/captacao-v8.js', 'data-captacao-v8');
+    } catch (erro) {
+      console.error('Não foi possível carregar o módulo de captação V8.', erro);
+    }
   }
 
   function aplicar() {
