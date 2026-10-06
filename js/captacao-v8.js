@@ -86,7 +86,8 @@
     const cor = STATUS_CORES[status] || STATUS_CORES['Não contatado'];
     const prop = casa.proprietario ? `<p class="text-[11px] text-slate-200 flex items-start gap-1.5"><i data-lucide="user" class="w-3 h-3 text-[#0094ff] shrink-0 mt-0.5"></i><span>${textoSeguro(casa.proprietario)}</span></p>` : '';
     const tel = casa.telefone ? `<p class="text-[11px] text-slate-300 flex items-start gap-1.5"><i data-lucide="phone" class="w-3 h-3 text-[#0094ff] shrink-0 mt-0.5"></i><span>${textoSeguro(casa.telefone)}</span></p>` : '';
-    const obs = casa.observacoes ? `<p class="text-[10px] text-slate-400 leading-snug line-clamp-3" title="${textoSeguro(casa.observacoes)}">${textoSeguro(casa.observacoes)}</p>` : '';
+    const obsHtml = textoSeguro(casa.observacoes || '').replace(/https?:\/\/[^\s<]+/g, u => `<a href="${u}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-sky-400 underline">ver anúncio</a>`);
+    const obs = casa.observacoes ? `<p class="text-[10px] text-slate-400 leading-snug line-clamp-4" title="${textoSeguro(casa.observacoes)}">${obsHtml}</p>` : '';
     const vazio = !prop && !tel && !obs ? '<p class="text-[11px] text-slate-500 italic">Sem contato anotado</p>' : '';
     const acoes = botoesContato(casa);
     return `<div class="flex flex-wrap items-center gap-1.5"><span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${cor}">${textoSeguro(status)}</span>${seletorStatus(casa)}</div>${prop}${tel}${acoes ? `<div class="flex flex-wrap gap-1.5">${acoes}</div>` : ''}${obs}${vazio}`;
