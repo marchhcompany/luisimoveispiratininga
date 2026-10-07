@@ -89,8 +89,9 @@
     const obsHtml = textoSeguro(casa.observacoes || '').replace(/https?:\/\/[^\s<]+/g, u => `<a href="${u}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-sky-400 underline">ver anúncio</a>`);
     const obs = casa.observacoes ? `<p class="text-[10px] text-slate-400 leading-snug line-clamp-4" title="${textoSeguro(casa.observacoes)}">${obsHtml}</p>` : '';
     const vazio = !prop && !tel && !obs ? '<p class="text-[11px] text-slate-500 italic">Sem contato anotado</p>' : '';
+    const streetView = !casa.foto && casa.latitude && casa.longitude ? `<a href="https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${casa.latitude},${casa.longitude}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="inline-block px-2 py-1 rounded-md bg-[#0b1b36] border border-[#1d3d70] text-sky-300 text-[10px] font-semibold">👁 Ver no Street View (Google)</a>` : '';
     const acoes = botoesContato(casa);
-    return `<div class="flex flex-wrap items-center gap-1.5"><span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${cor}">${textoSeguro(status)}</span>${seletorStatus(casa)}</div>${prop}${tel}${acoes ? `<div class="flex flex-wrap gap-1.5">${acoes}</div>` : ''}${obs}${vazio}`;
+    return `<div class="flex flex-wrap items-center gap-1.5"><span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${cor}">${textoSeguro(status)}</span>${seletorStatus(casa)}</div>${prop}${tel}${acoes ? `<div class="flex flex-wrap gap-1.5">${acoes}</div>` : ''}${obs}${vazio}${streetView}`;
   };
 
   // ---------- Progresso de contato nos cards de quadra ----------

@@ -76,8 +76,10 @@ function obterImportados() {
 function garantirQuadrasDosImportados(base) {
   const ids = [...new Set(obterImportados().map(item => Number(item?.quadra)).filter(Number.isFinite))];
   ids.forEach(id => {
-    if (!base.some(q => Number(q.id) === id)) base.push(normalizarQuadra({ id, tag:`QUADRA ${String(id).padStart(2,'0')}`, nome:'Quadra importada', status:'Pendente', casas:[] }, base.length));
+    const nome = obterImportados().find(item => Number(item?.quadra) === id && item.quadraNome)?.quadraNome || 'Quadra importada';
+    if (!base.some(q => Number(q.id) === id)) base.push(normalizarQuadra({ id, tag:`QUADRA ${String(id).padStart(2,'0')}`, nome, status:'Pendente', casas:[] }, base.length));
   });
+  base.sort((a, b) => Number(a.id) - Number(b.id));
   return base;
 }
 function mesclarImportados(base) {
