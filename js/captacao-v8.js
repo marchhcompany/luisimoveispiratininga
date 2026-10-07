@@ -123,6 +123,7 @@
   const atualizarTotaisV7 = window.atualizarTotais;
   window.atualizarTotais = function atualizarTotaisV8() {
     atualizarTotaisV7();
+    if(window.LEVANTAMENTO_ENDERECOS) return;
     const stat = document.getElementById('stat-contatos');
     const desc = stat?.parentElement?.querySelector('div.text-xs');
     const total = quadras.reduce((a, q) => a + resumoQuadra(q).total, 0);

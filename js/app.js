@@ -121,6 +121,7 @@ function toggleStatus(id) {
   q.status = q.status === 'Captação Realizada' ? 'Pendente' : 'Captação Realizada'; salvar();
 }
 function atualizarTotais() {
+  if (window.LEVANTAMENTO_ENDERECOS) return atualizarTotaisLevantamento();
   recalcular();
   const concluidas = quadras.filter(q => q.status === 'Captação Realizada').length;
   document.getElementById('stat-concluidas').innerText = `${concluidas} de ${quadras.length}`;
@@ -130,6 +131,17 @@ function atualizarTotais() {
   document.getElementById('stat-importados').innerText = `${importados} via GitHub`;
   const setor = document.getElementById('setor-contagem'); if (setor) setor.innerText = `Praia de Piratininga — ${quadras.length} quadras operacionais`;
 }
+function atualizarTotaisLevantamento() {
+  const d=window.LEVANTAMENTO_ENDERECOS;
+  if(!d) return;
+  const completos=d.lotes.filter(x=>x.rua&&x.numero).length;
+  document.getElementById('stat-concluidas').innerText=d.resumo.length;
+  document.getElementById('stat-imoveis').innerText=d.lotes.length;
+  document.getElementById('stat-contatos').innerText=completos;
+  document.getElementById('stat-importados').innerText='Inscrições distintas';
+  const setor=document.getElementById('setor-contagem');
+  if(setor) setor.innerText=`Praia de Piratininga — ${d.resumo.length} quadras do recorte cadastral`;
+}
 function renderizar() {
   recalcular();
   const grid = document.getElementById('grid-quadras'); grid.innerHTML = '';
@@ -138,6 +150,17 @@ function renderizar() {
     const card = document.createElement('div');
     card.className = 'bg-[#081427] border border-[#122543] rounded-2xl p-5 flex flex-col justify-between hover:border-[#1c3966] transition duration-200';
     card.innerHTML = `<div><div class="flex items-start justify-between gap-3"><span class="text-[11px] font-bold tracking-wider text-[#0094ff] uppercase block">${textoSeguro(q.tag)}</span><button onclick="editarQuadra(${q.id})" title="Editar quadra" class="p-1.5 rounded-lg bg-[#0b1b36] hover:bg-[#14305c] text-slate-300 hover:text-white transition"><i data-lucide="settings-2" class="w-3.5 h-3.5"></i></button></div><h3 class="text-[15px] font-bold text-white mt-1 leading-snug min-h-[42px]">${textoSeguro(q.nome)}</h3><div class="mt-2.5 mb-4"><button onclick="toggleStatus(${q.id})" class="text-[11px] font-semibold px-3 py-1 rounded-full ${concluida?'bg-[#042c26] text-[#10b981] border border-[#064e43]':'bg-[#0b172d] text-[#8e9eb5] border border-[#162a4d]'}">${q.status}</button></div></div><div class="space-y-2.5"><button onclick="abrirGaleria(${q.id})" class="w-full py-2.5 bg-[#0094ff]/15 hover:bg-[#0094ff]/25 border border-[#0094ff]/40 text-[#0094ff] hover:text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition"><i data-lucide="images" class="w-4 h-4"></i> Ver Fotos & Casas Mapeadas (${q.casas.length})</button><div class="bg-[#050f1f] border border-[#11233f] rounded-xl px-4 py-2.5 flex items-center justify-between"><span class="text-xs text-slate-300 font-medium">Imóveis Mapeados</span><span class="text-sm font-bold text-white">${q.imoveis}</span></div><div class="bg-[#050f1f] border border-[#11233f] rounded-xl px-4 py-2.5 flex items-center justify-between"><span class="text-xs text-slate-300 font-medium">Contatos Feitos</span><span class="text-sm font-bold text-white">${q.contatos}</span></div></div>`;
+    const cadastro=window.LEVANTAMENTO_ENDERECOS?.resumo.find(x=>x.quadra===Number(q.id));
+    if(cadastro) {
+      const botao=card.querySelector('button[onclick^="abrirGaleria"]');
+      if(botao) botao.textContent=`Fotos e anotações (${q.casas.filter(c=>!String(c.id).startsWith('lote-')).length} referências)`;
+      const blocos=card.querySelectorAll('.space-y-2\\.5 > div');
+      if(blocos[0]) blocos[0].innerHTML=`<span class="text-xs text-slate-300">Lotes cadastrados</span><span class="text-sm font-bold text-white">${cadastro.total}</span>`;
+      if(blocos[1]) blocos[1].innerHTML=`<span class="text-xs text-slate-300">Com rua e número</span><span class="text-sm font-bold text-white">${cadastro.comNumero}</span>`;
+      card.querySelector('.space-y-2\\.5').insertAdjacentHTML('beforeend',`<div class="text-[11px] text-slate-400">${cadastro.semNumero} sem número no cadastro${cadastro.semRua?` · ${cadastro.semRua} sem logradouro`:''}</div><a href="enderecos.html?quadra=${q.id}" class="block text-center py-2.5 rounded-xl bg-[#0094ff] text-white text-xs font-bold">Ver endereços da quadra</a>`);
+      const status=card.querySelector('button[onclick^="toggleStatus"]');
+      if(status) status.textContent=`Contato: ${q.status}`;
+    }
     grid.appendChild(card);
   });
   if (window.lucide) lucide.createIcons();

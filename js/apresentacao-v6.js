@@ -76,11 +76,8 @@
         q.nome = nomesOficiais[id];
         alterou = true;
       }
-      const statusEsperado = id >= 1 && id <= 7 ? 'Captação Realizada' : (id === 8 ? 'Pendente' : q.status);
-      if (q.status !== statusEsperado) {
-        q.status = statusEsperado;
-        alterou = true;
-      }
+      // O carregamento não conclui contato ou visita automaticamente.
+      // Preserva os status históricos registrados no dispositivo/banco.
     });
     if (alterou && typeof persistir === 'function') persistir();
     if (typeof renderizar === 'function') renderizar();

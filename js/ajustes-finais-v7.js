@@ -4,6 +4,7 @@
   const quantidadeVisivelPorQuadra = new Map();
 
   function atualizarTextosPainel() {
+    if(window.LEVANTAMENTO_ENDERECOS) return;
     const stat = document.getElementById('stat-concluidas');
     if (!stat) return;
     const card = stat.parentElement;
@@ -15,6 +16,7 @@
 
   // O painel mostra áreas já trabalhadas, sem sugerir que Piratininga tenha somente 8 quadras.
   window.atualizarTotais = function atualizarTotaisV7() {
+    if(window.LEVANTAMENTO_ENDERECOS) return atualizarTotaisLevantamento();
     recalcular();
     const concluidas = quadras.filter(q => q.status === 'Captação Realizada').length;
     const statConcluidas = document.getElementById('stat-concluidas');

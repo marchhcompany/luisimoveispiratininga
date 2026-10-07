@@ -10,9 +10,20 @@ function escMapa(valor='') {
 
 function obterImoveisGeolocalizados(filtroQuadra='todas') {
   const itens = [];
+  const cadastradas = new Set();
+  (window.LEVANTAMENTO_ENDERECOS?.lotes || []).forEach(l => {
+    if (filtroQuadra !== 'todas' && String(l.quadra) !== String(filtroQuadra)) return;
+    const q = quadras.find(q=>Number(q.id)===l.quadra) || {id:l.quadra,tag:`QUADRA ${l.quadra}`,nome:'Quadra cadastral',casas:[]};
+    const index = q.casas.findIndex(c=>String(c.lote)===l.inscricao);
+    const existente = index >= 0 ? q.casas[index] : {};
+    const casa = {...existente,lote:l.inscricao,rua:l.rua,numero:l.numero,endereco:l.endereco,latitude:l.latitude,longitude:l.longitude};
+    itens.push({q,casa,index,lat:l.latitude,lng:l.longitude});
+    cadastradas.add(l.inscricao);
+  });
   quadras.forEach(q => {
     if (filtroQuadra !== 'todas' && String(q.id) !== String(filtroQuadra)) return;
     (q.casas || []).forEach((casa, index) => {
+      if (cadastradas.has(String(casa.lote)) || String(casa.latitude??'').trim()==='' || String(casa.longitude??'').trim()==='') return;
       const lat = Number(casa.latitude);
       const lng = Number(casa.longitude);
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
@@ -93,11 +104,11 @@ function renderizarImoveisNoMapa(ajustar=false) {
     const endereco = typeof enderecoCasa === 'function' ? enderecoCasa(casa) : (casa.rua || casa.endereco || 'Endereço a preencher');
     const foto = casa.foto ? `<img src="${escMapa(casa.foto)}" loading="lazy" style="width:100%;height:90px;object-fit:cover;border-radius:8px;margin:6px 0">` : '';
     const marker = L.marker([lat,lng]).addTo(camadaImoveis);
-    marker.bindPopup(`<div style="min-width:210px">${foto}<strong>${escMapa(endereco)}</strong><br><span>${escMapa(q.tag)} — ${escMapa(q.nome)}</span><br><span>Lote: ${escMapa(casa.lote || '—')}</span><br><button onclick="abrirImovelDoMapa(${q.id},${index})" style="margin-top:8px;padding:6px 9px;border:0;border-radius:7px;background:#0284c7;color:#fff;font-weight:700;cursor:pointer">Abrir imóvel</button></div>`);
+    marker.bindPopup(`<div style="min-width:210px">${foto}<strong>${escMapa(endereco)}</strong><br><span>${escMapa(q.tag)} — ${escMapa(q.nome)}</span><br><span>Lote: ${escMapa(casa.lote || '—')}</span><br>${index>=0?`<button onclick="abrirImovelDoMapa(${q.id},${index})" style="margin-top:8px;padding:6px 9px;border:0;border-radius:7px;background:#0284c7;color:#fff;font-weight:700;cursor:pointer">Abrir imóvel</button>`:`<a href="enderecos.html?quadra=${q.id}" style="display:inline-block;margin-top:8px;color:#0284c7">Ver endereço da quadra</a>`}</div>`);
     bounds.push([lat,lng]);
   });
   const contador = document.getElementById('mapa-contador');
-  if (contador) contador.innerText = `${itens.length} imóvel${itens.length === 1 ? '' : 'is'} com GPS`;
+  if (contador) contador.innerText = `${itens.length} lotes/registros georreferenciados`;
   if (ajustar && bounds.length) mapaTerritorial.fitBounds(bounds, {padding:[35,35], maxZoom:18});
 }
 

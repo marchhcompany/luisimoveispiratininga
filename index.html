@@ -26,12 +26,13 @@
   <div class="max-w-[1400px] mx-auto px-6 py-5 flex flex-col md:flex-row md:items-center justify-between gap-5">
     <div class="flex items-center gap-4">
       <div class="w-[52px] h-[52px] rounded-full bg-white flex flex-col items-center justify-center p-1 border-2 border-red-500 shadow-md"><span class="text-red-600 font-extrabold text-[12px] leading-none uppercase tracking-tighter">LUIS</span><span class="text-[#081427] font-extrabold text-[8px] leading-tight uppercase tracking-wider">IMÓVEIS</span></div>
-      <div><div class="text-[11px] font-bold tracking-widest text-[#0094ff] uppercase">LUIS IMÓVEIS — NITERÓI/RJ</div><h1 class="text-2xl md:text-[28px] font-extrabold text-white tracking-tight flex flex-wrap items-center gap-2 mt-0.5"><span>Mapeamento Territorial</span><span class="text-red-500 font-normal">|</span><span>Setor Praia de Piratininga</span></h1><p class="text-xs text-slate-400 mt-1">Controle de rondas por quadra — imóveis mapeados e captação ativa em campo</p></div>
+      <div><div class="text-[11px] font-bold tracking-widest text-[#0094ff] uppercase">LUIS IMÓVEIS — NITERÓI/RJ</div><h1 class="text-2xl md:text-[28px] font-extrabold text-white tracking-tight flex flex-wrap items-center gap-2 mt-0.5"><span>Mapeamento Territorial</span><span class="text-red-500 font-normal">|</span><span>Setor Praia de Piratininga</span></h1><p class="text-xs text-slate-400 mt-1">Levantamento cadastral por quadra — endereços, inscrições e pendências</p></div>
     </div>
     <div class="flex flex-wrap items-center gap-3 self-start md:self-center">
-      <span class="px-3 py-2 rounded-xl bg-cyan-950/40 border border-cyan-800/60 text-cyan-300 text-xs font-bold">V3 • Mapa territorial</span>
+      <span class="px-3 py-2 rounded-xl bg-cyan-950/40 border border-cyan-800/60 text-cyan-300 text-xs font-bold">Endereços por quadra</span>
       <button onclick="abrirMapaTerritorial()" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-semibold flex items-center gap-2 transition"><i data-lucide="map" class="w-4 h-4"></i> Mapa Territorial</button>
       <button onclick="abrirGerenciadorQuadras()" class="px-4 py-2 rounded-xl bg-[#0b1b36] hover:bg-[#14305c] border border-[#1d3d70] text-sky-300 text-sm font-semibold flex items-center gap-2 transition"><i data-lucide="settings-2" class="w-4 h-4"></i> Gerenciar Quadras</button>
+      <a href="enderecos.html" class="px-4 py-2 rounded-xl bg-[#0094ff] text-white text-sm font-semibold">Relação de endereços</a>
       <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-[#09152b] hover:bg-[#0f2244] border border-[#172e54] text-slate-200 text-sm font-semibold flex items-center gap-2 transition"><i data-lucide="printer" class="w-4 h-4"></i> Exportar PDF</button>
       <a href="https://share.google/sYSDxmyIQBpDsvbMp~" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-xl bg-[#0094ff] hover:bg-[#0080dd] text-white text-sm font-semibold flex items-center gap-2 transition"><i data-lucide="plus" class="w-4 h-4"></i> Nova Captação</a>
     </div>
@@ -40,9 +41,9 @@
 
 <main class="max-w-[1400px] mx-auto px-6 py-6 w-full space-y-6 flex-1">
   <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
-    <div class="bg-[#081427] border border-[#122543] rounded-2xl p-6"><div class="flex items-start justify-between"><span class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Quadras Concluídas</span><i data-lucide="check" class="w-5 h-5 text-emerald-400"></i></div><div id="stat-concluidas" class="text-4xl font-extrabold text-[#0094ff] tracking-tight mt-4">0</div><div class="text-xs text-slate-400 mt-1">Status “Captação Realizada”</div></div>
-    <div class="bg-[#081427] border border-[#122543] rounded-2xl p-6"><div class="flex items-start justify-between"><span class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Imóveis Mapeados</span><i data-lucide="home" class="w-5 h-5 text-rose-400"></i></div><div id="stat-imoveis" class="text-4xl font-extrabold text-[#0094ff] tracking-tight mt-4">0</div><div class="text-xs text-slate-400 mt-1 flex items-center justify-between"><span>Total mapeado nas quadras</span><span id="stat-importados" class="text-sky-400 font-semibold">0 via GitHub</span></div></div>
-    <div class="bg-[#081427] border border-[#122543] rounded-2xl p-6"><div class="flex items-start justify-between"><span class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Contatos Realizados</span><i data-lucide="handshake" class="w-5 h-5 text-sky-400"></i></div><div id="stat-contatos" class="text-4xl font-extrabold text-[#0094ff] tracking-tight mt-4">0</div><div class="text-xs text-slate-400 mt-1">Proprietários e portarias</div></div>
+    <div class="bg-[#081427] border border-[#122543] rounded-2xl p-6"><div class="flex items-start justify-between"><span class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Quadras no levantamento</span><i data-lucide="check" class="w-5 h-5 text-emerald-400"></i></div><div id="stat-concluidas" class="text-4xl font-extrabold text-[#0094ff] tracking-tight mt-4">0</div><div class="text-xs text-slate-400 mt-1">Recorte cadastral do sistema</div></div>
+    <div class="bg-[#081427] border border-[#122543] rounded-2xl p-6"><div class="flex items-start justify-between"><span class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Lotes cadastrados</span><i data-lucide="home" class="w-5 h-5 text-rose-400"></i></div><div id="stat-imoveis" class="text-4xl font-extrabold text-[#0094ff] tracking-tight mt-4">0</div><div class="text-xs text-slate-400 mt-1 flex items-center justify-between"><span>Base municipal</span><span id="stat-importados" class="text-sky-400 font-semibold">Inscrições distintas</span></div></div>
+    <div class="bg-[#081427] border border-[#122543] rounded-2xl p-6"><div class="flex items-start justify-between"><span class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Com rua e número</span><i data-lucide="handshake" class="w-5 h-5 text-sky-400"></i></div><div id="stat-contatos" class="text-4xl font-extrabold text-[#0094ff] tracking-tight mt-4">0</div><div class="text-xs text-slate-400 mt-1">Numeração informada no cadastro</div></div>
   </section>
   <section class="bg-[#081427] border border-[#122543] rounded-2xl px-5 py-4 flex flex-col md:flex-row md:items-center justify-between gap-3"><div class="flex items-center gap-3.5"><div class="w-8 h-8 rounded-full bg-[#0c1f3c] border border-[#152e54] text-[#0094ff] flex items-center justify-center"><i data-lucide="map-pin" class="w-4 h-4"></i></div><div><div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Setor Monitorado</div><div id="setor-contagem" class="text-[13px] font-semibold text-slate-100 mt-0.5">Praia de Piratininga</div></div></div><div class="text-[11px] text-slate-400">V3: <span class="text-sky-400 font-semibold">GPS + imóveis no mapa + lotes oficiais da Prefeitura</span></div></section>
   <section id="grid-quadras" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></section>
@@ -104,6 +105,7 @@
   </div>
 </div>
 
+<script src="data/levantamento-enderecos.js"></script>
 <script src="data/imoveis-importados.js"></script>
 <script src="js/app.js"></script>
 <script src="js/mapa.js"></script>
